@@ -1,0 +1,755 @@
+.crudContainer {
+  padding: 32px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  color: var(--text-primary);
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.formButtons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.formButtons button {
+  flex: 1;
+}
+
+/* Cards Grid */
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* Item Card */
+.itemCard {
+  background: var(--bg-card);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--accent-border);
+  transition: all 0.3s ease;
+}
+
+.itemCard:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--accent);
+}
+
+/* Card Image */
+.cardImage {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+/* Card Header */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px 8px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.cardIcon {
+  font-size: 24px;
+}
+
+.cardHeader h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Card Body */
+.cardBody {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.value {
+  font-size: 14px;
+  color: var(--text-primary);
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+}
+
+/* Status Select */
+.statusSelect {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.statusSelect:hover {
+  border-color: var(--accent);
+}
+
+.statusSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+/* Card Actions */
+.cardActions {
+  padding: 12px 20px 16px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+.cardActions button {
+  flex: 1;
+  font-size: 13px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+/* Botões específicos dos cards */
+.btnEdit {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border-hover);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btnEdit:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.btnDelete {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border-hover);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btnDelete:hover {
+  background: var(--error);
+  color: white;
+  border-color: var(--error);
+  transform: translateY(-1px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .cardActions {
+    flex-direction: column;
+  }
+  
+  .cardActions button {
+    width: 100%;
+  }
+}
+
+/* Form Header */
+.formHeader {
+  border-bottom: 2px solid var(--border-light);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.formHeader h2 {
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.formSubtitle {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* Checkbox Container */
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 12px;
+  background: var(--table-row-even);
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.checkboxContainer:hover {
+  border-color: var(--accent);
+  background: var(--table-row-hover);
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.checkboxLabel {
+  color: var(--text-label);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+}
+
+/* Room Preview */
+.roomPreview {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--table-row-hover);
+  border: 2px solid var(--accent-border);
+  border-radius: 12px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.previewImage {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(20, 151, 225, 0.15);
+}
+
+.previewInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.previewType {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.previewNumber {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.previewPrice {
+  font-size: 15px;
+  color: var(--success);
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* Date Range Input */
+.dateInputGroup {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dateRangeInput {
+  width: 100%;
+  padding: 12px 14px;
+  padding-right: 45px;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dateRangeInput::placeholder {
+  color: var(--text-placeholder);
+}
+
+.dateRangeInput:hover {
+  border-color: var(--border-hover);
+}
+
+.dateRangeInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.calendarIcon {
+  position: absolute;
+  right: 14px;
+  font-size: 20px;
+  pointer-events: none;
+  opacity: 0.7;
+  color: var(--text-secondary);
+}
+
+.dateHelp {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Listing Container with Sidebar */
+.listingContainer {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+/* Filter Panel */
+.filterPanel {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--accent-border);
+  height: fit-content;
+  position: sticky;
+  top: 20px;
+}
+
+.filterHeader {
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.filterHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filterSection {
+  margin-bottom: 20px;
+}
+
+.filterLabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--text-label);
+  font-size: 13px;
+}
+
+.filterInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: all 0.2s ease;
+}
+
+.filterInput::placeholder {
+  color: var(--text-placeholder);
+}
+
+.filterInput:hover {
+  border-color: var(--border-hover);
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.clearFiltersBtn {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: 2px solid var(--border-hover);
+  border-radius: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.clearFiltersBtn:hover {
+  background: var(--error);
+  border-color: var(--error);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.rangeInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rangeSeparator {
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.priceDisplay {
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.priceRangeContainer {
+  position: relative;
+  height: 40px;
+  margin-bottom: 16px;
+  padding: 0 10px;
+}
+
+.priceRangeContainer::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  background: var(--border-light);
+  border-radius: 3px;
+  transform: translateY(-50%);
+  z-index: 0;
+}
+
+.priceRangeContainer .rangeSlider {
+  position: absolute;
+  width: calc(100% - 20px);
+  top: 50%;
+  transform: translateY(-50%);
+  left: 10px;
+  pointer-events: none;
+}
+
+.priceRangeContainer .rangeSlider::-webkit-slider-thumb {
+  pointer-events: auto;
+}
+
+.priceRangeContainer .rangeSlider::-moz-range-thumb {
+  pointer-events: auto;
+}
+
+.priceRangeContainer .rangeSlider:first-child {
+  z-index: 2;
+}
+
+.priceRangeContainer .rangeSlider:last-child {
+  z-index: 2;
+}
+
+.rangeSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+}
+
+.rangeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.rangeSlider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 3px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.priceOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.priceOption {
+  padding: 10px 12px;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.priceOption:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.listingContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.listHeader h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.resultsCount {
+  padding: 8px 16px;
+  background: var(--table-row-even);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .listingContainer {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .filterPanel {
+    position: static;
+    order: -1;
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .roomPreview {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .previewImage {
+    width: 100%;
+    height: 150px;
+  }
+  
+  .cardActions {
+    flex-direction: column;
+  }
+  
+  .cardActions button {
+    width: 100%;
+  }
+
+  .reservationFormGrid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .summaryColumn {
+    position: static;
+  }
+}
+
+/* Resumo da Reserva */
+.reservationFormGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.selectionColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.summaryColumn {
+  position: sticky;
+  top: 20px;
+}
+
+.reservationSummary {
+  padding: 24px;
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--bg-card) 100%);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.summaryPlaceholder {
+  padding: 48px 24px;
+  background: var(--bg-card);
+  border: 2px dashed var(--border-light);
+  border-radius: 12px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.placeholderIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.summaryPlaceholder p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.reservationSummary {
+  padding: 24px;
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--bg-card) 100%);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+}
+
+.summaryHeader {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--accent);
+}
+
+.summaryHeader h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.summaryContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.summaryLabel {
+  font-size: 15px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.summaryValue {
+  font-size: 15px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.summaryTotal {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 2px dashed var(--border-light);
+}
+
+.summaryValueTotal {
+  font-size: 24px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.summaryDivider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 8px 0;
+}

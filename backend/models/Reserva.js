@@ -1,0 +1,56 @@
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+const Cliente = require('./Cliente');
+const Quarto = require('./Quarto');
+
+const Reserva = sequelize.define('Reserva', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  clienteId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Cliente,
+      key: 'id',
+    },
+  },
+  quartoId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: Quarto,
+      key: 'id',
+    },
+  },
+  dataCheckIn: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  dataCheckOut: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+  valorTotal: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  status: {
+    type: DataTypes.ENUM('Confirmada', 'Cancelada', 'Finalizada'),
+    defaultValue: 'Confirmada',
+  },
+}, {
+  tableName: 'reservas',
+  timestamps: true,
+});
+
+// Relacionamentos
+Reserva.belongsTo(Cliente, { foreignKey: 'clienteId', as: 'cliente' });
+Reserva.belongsTo(Quarto, { foreignKey: 'quartoId', as: 'quarto' });
+
+Cliente.hasMany(Reserva, { foreignKey: 'clienteId', as: 'reservas' });
+Quarto.hasMany(Reserva, { foreignKey: 'quartoId', as: 'reservas' });
+
+module.exports = Reserva;

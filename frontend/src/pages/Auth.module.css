@@ -1,0 +1,95 @@
+.authContainer {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+}
+
+.authCard {
+  background: var(--bg-card);
+  padding: 48px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-hover);
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid var(--accent-border);
+  transition: transform 0.3s ease;
+}
+
+.authCard h1 {
+  text-align: center;
+  color: var(--accent);
+  margin-bottom: 12px;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.authCard h2 {
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 32px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.authCard form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.authCard button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.authCard button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(20, 151, 225, 0.3);
+}
+
+.authCard button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.authLink {
+  text-align: center;
+  margin-top: 24px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.authLink a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.authLink a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .authCard {
+    padding: 32px 24px;
+  }
+  
+  .authCard h1 {
+    font-size: 28px;
+  }
+  
+  .authCard h2 {
+    font-size: 20px;
+  }
+}

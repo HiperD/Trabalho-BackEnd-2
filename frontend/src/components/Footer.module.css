@@ -1,0 +1,142 @@
+.footer {
+  background: var(--bg-card);
+  border-top: 2px solid var(--border-light);
+  margin-top: 60px;
+  padding: 24px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.logo {
+  height: 64px;
+  width: auto;
+  object-fit: contain;
+}
+
+.logoLight {
+  display: block;
+}
+
+.logoDark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .logoLight {
+    display: none;
+  }
+  
+  .logoDark {
+    display: block;
+  }
+}
+
+.textInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.university {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.universityFull {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.universityName {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--text-secondary);
+  margin: 0;
+  text-align: left;
+}
+
+.year {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.developers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.names {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.separator {
+  color: var(--text-label);
+  font-weight: 400;
+}
+
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .info {
+    align-items: center;
+  }
+
+  .logoSection {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .textInfo {
+    align-items: center;
+  }
+
+  .developers {
+    align-items: center;
+  }
+}
