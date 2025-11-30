@@ -1,56 +1,48 @@
 # Sistema de Gerenciamento de Hotel 🏨
 
-Projeto completo de sistema de gerenciamento de hotel desenvolvido com Node.js, Express, React e PostgreSQL.
+Sistema completo para gerenciamento de hotel com cadastro de clientes, quartos e reservas. Interface moderna com formulários em múltiplas etapas, filtros avançados e auditoria de operações.
 
 ## 🚀 Início Rápido
 
 ### Pré-requisitos
 - Node.js v16+
 - PostgreSQL
-- npm ou yarn
+- MongoDB Atlas (para auditoria)
 
 ### Instalação
 
-1. **Criar banco de dados:**
+1. **Criar banco de dados PostgreSQL:**
 ```sql
 CREATE DATABASE hotel_db;
 ```
 
-2. **Configurar variáveis de ambiente:**
-```bash
-# Edite o arquivo backend/.env com suas credenciais do PostgreSQL
-```
-
-3. **Instalar todas as dependências:**
+2. **Instalar dependências e rodar:**
 ```bash
 npm run install:all
-```
-
-4. **Rodar o projeto completo:**
-```bash
 npm run dev
 ```
 
 ✅ **Backend:** http://localhost:3000  
 ✅ **Frontend:** http://localhost:5173
 
-**Tudo roda com um único comando!**
-
-## 📖 Documentação Completa
-
-Consulte o arquivo `DOCUMENTACAO.md` para informações detalhadas sobre:
-- Estrutura do projeto
-- Funcionalidades implementadas
-- Endpoints da API
-- Guia de uso
-- Instruções para apresentação
-
 ## 🛠️ Tecnologias
 
-**Backend:** Node.js, Express, Sequelize, PostgreSQL, JWT  
-**Frontend:** React, Vite, Axios, React Router
+**Backend:** Node.js, Express, Sequelize (PostgreSQL), Mongoose (MongoDB Atlas), JWT  
+**Frontend:** React, Vite, Axios, React Router, Flatpickr
 
-## 👥 UTFPR - Projeto 2
+## ✨ Funcionalidades
 
-Desenvolvido para a disciplina de Programação Web Back-End  
-Profª. Dra. Tatanne C. N. Rocha
+- 🔐 Autenticação JWT
+- 👥 Cadastro de clientes (formulário em 2 etapas)
+- 🛏️ Gerenciamento de quartos (tipos, capacidades, preços)
+- 📅 Sistema de reservas com cálculo automático de valores
+- 🔍 Filtros avançados (datas, capacidade, preços com slider)
+- 📊 Resumo financeiro em tempo real
+- 📝 Auditoria completa em MongoDB Atlas (rota, usuário, IP, timestamp)
+- 🎨 Tema claro/escuro automático
+
+## 👥 Desenvolvedores
+
+**Pedro Bittencourt • Lucas • Leo**  
+UTFPR - Universidade Tecnológica Federal do Paraná  
+© 2025
