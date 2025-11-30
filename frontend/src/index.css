@@ -56,64 +56,62 @@
   --scrollbar-corner: transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* Cores principais */
-    --accent: #1497E1;
-    --accent-hover: #1eb4ff;
-    --accent-light: rgba(20, 151, 225, 0.15);
-    --accent-border: rgba(20, 151, 225, 0.2);
-    
-    /* Background */
-    --bg-gradient-start: #060D1D;
-    --bg-gradient-end: #0a1428;
-    --bg-card: #0f1729;
-    
-    /* Text */
-    --text-primary: #e2e8f0;
-    --text-secondary: #94a3b8;
-    --text-label: #cbd5e1;
-    --text-placeholder: #64748b;
-    
-    /* Borders */
-    --border-light: #1e293b;
-    --border-hover: #334155;
-    
-    /* Estados */
-    --success: #34d058;
-    --success-hover: #28a745;
-    --success-bg: #0d3818;
-    --success-border: #144620;
-    --success-text: #7ee787;
-    
-    --error: #f85149;
-    --error-hover: #ff6b6b;
-    --error-bg: #3d1014;
-    --error-border: #5a1e22;
-    --error-text: #ffa198;
-    
-    --secondary: #8b949e;
-    --secondary-hover: #b1bac4;
-    
-    /* Table */
-    --table-bg: #0f1729;
-    --table-row-even: #131b2e;
-    --table-row-hover: #1a2538;
-    --table-header: #0d1421;
-    
-    /* Shadow */
-    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 8px 24px rgba(20, 151, 225, 0.4);
-    
-    /* Calendar Icon */
-    --calendar-icon-filter: invert(71%) sepia(11%) saturate(447%) hue-rotate(175deg) brightness(95%) contrast(88%);
-    
-    /* Scrollbar */
-    --scrollbar-bg: #0a1428;
-    --scrollbar-thumb: #1e293b;
-    --scrollbar-thumb-hover: #334155;
-    --scrollbar-corner: transparent;
-  }
+[data-theme="dark"] {
+  /* Cores principais */
+  --accent: #1497E1;
+  --accent-hover: #1eb4ff;
+  --accent-light: rgba(20, 151, 225, 0.15);
+  --accent-border: rgba(20, 151, 225, 0.2);
+  
+  /* Background */
+  --bg-gradient-start: #060D1D;
+  --bg-gradient-end: #0a1428;
+  --bg-card: #0f1729;
+  
+  /* Text */
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-label: #cbd5e1;
+  --text-placeholder: #64748b;
+  
+  /* Borders */
+  --border-light: #1e293b;
+  --border-hover: #334155;
+  
+  /* Estados */
+  --success: #34d058;
+  --success-hover: #28a745;
+  --success-bg: #0d3818;
+  --success-border: #144620;
+  --success-text: #7ee787;
+  
+  --error: #f85149;
+  --error-hover: #ff6b6b;
+  --error-bg: #3d1014;
+  --error-border: #5a1e22;
+  --error-text: #ffa198;
+  
+  --secondary: #8b949e;
+  --secondary-hover: #b1bac4;
+  
+  /* Table */
+  --table-bg: #0f1729;
+  --table-row-even: #131b2e;
+  --table-row-hover: #1a2538;
+  --table-header: #0d1421;
+  
+  /* Shadow */
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-hover: 0 8px 24px rgba(20, 151, 225, 0.4);
+  
+  /* Calendar Icon */
+  --calendar-icon-filter: invert(71%) sepia(11%) saturate(447%) hue-rotate(175deg) brightness(95%) contrast(88%);
+  
+  /* Scrollbar */
+  --scrollbar-bg: #0a1428;
+  --scrollbar-thumb: #1e293b;
+  --scrollbar-thumb-hover: #334155;
+  --scrollbar-corner: transparent;
 }
 
 * {
@@ -500,15 +498,13 @@ input[type=number] {
   color: var(--text-placeholder) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  .flatpickr-calendar {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
-  }
-  
-  .flatpickr-time input {
-    background: var(--bg-card) !important;
-    color: var(--text-primary) !important;
-  }
+[data-theme="dark"] .flatpickr-calendar {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-theme="dark"] .flatpickr-time input {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
 }
 
 /* -----------------------------

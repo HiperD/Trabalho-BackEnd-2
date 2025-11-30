@@ -1,10 +1,12 @@
 import { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { ThemeContext } from '../context/ThemeContext';
 import styles from './Navbar.module.css';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
+  const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -26,6 +28,9 @@ const Navbar = () => {
         </ul>
         <div className={styles.userInfo}>
           <span>Olá, {user?.nome}</span>
+          <button onClick={toggleTheme} className={styles.themeBtn} title={`Alternar para tema ${theme === 'light' ? 'escuro' : 'claro'}`}>
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
           <button onClick={handleLogout} className={styles.logoutBtn}>
             Sair
           </button>

@@ -46,14 +46,12 @@
   display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  .logoLight {
-    display: none;
-  }
-  
-  .logoDark {
-    display: block;
-  }
+[data-theme="dark"] .logoLight {
+  display: none;
+}
+
+[data-theme="dark"] .logoDark {
+  display: block;
 }
 
 .textInfo {
