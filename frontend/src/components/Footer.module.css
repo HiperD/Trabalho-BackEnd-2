@@ -1,7 +1,7 @@
 .footer {
   background: var(--bg-card);
   border-top: 2px solid var(--border-light);
-  margin-top: 60px;
+  margin-top: auto;
   padding: 24px 0;
 }
 
