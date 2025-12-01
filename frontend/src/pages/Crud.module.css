@@ -753,3 +753,557 @@
   background: var(--border-light);
   margin: 8px 0;
 }
+
+/* Multi-Step Form Styles */
+.stepIndicator {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  padding: 0 20px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  position: relative;
+}
+
+.stepNumber {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 3px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+  z-index: 2;
+  position: relative;
+}
+
+.stepLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.step.active .stepNumber {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(20, 151, 225, 0.3);
+}
+
+.step.active .stepLabel {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.step.completed .stepNumber {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+.step.completed .stepLabel {
+  color: var(--success);
+}
+
+.stepLine {
+  position: absolute;
+  top: 25px;
+  left: 50%;
+  right: -50%;
+  height: 3px;
+  background: var(--border-light);
+  z-index: 1;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.step.completed .stepLine {
+  background: var(--success);
+}
+
+.step.active:not(.completed) .stepLine {
+  background: linear-gradient(90deg, var(--success) 0%, var(--border-light) 100%);
+}
+
+.step:last-child .stepLine {
+  display: none;
+}
+
+.formStepContent {
+  margin-top: 20px;
+}
+
+.filtersRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.filterSelect {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.filterSelect:hover {
+  border-color: var(--border-hover);
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.stepTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid var(--border-light);
+  border-radius: 10px;
+  font-size: 15px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+}
+
+.searchInput::placeholder {
+  color: var(--text-placeholder);
+}
+
+.searchInput:hover {
+  border-color: var(--border-hover);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px var(--accent-light);
+}
+
+.selectionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+  max-height: 450px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.selectionCard {
+  background: var(--bg-card);
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.selectionCard:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(20, 151, 225, 0.15);
+}
+
+.selectionCard.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: 0 4px 16px rgba(20, 151, 225, 0.2);
+}
+
+.selectedBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  background: var(--success);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(67, 160, 71, 0.3);
+}
+
+.selectionCard h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.selectionCard p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.roomCard {
+  position: relative;
+  background: var(--bg-card);
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.roomCard:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(20, 151, 225, 0.15);
+}
+
+.roomCard.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+  box-shadow: 0 4px 16px rgba(20, 151, 225, 0.2);
+}
+
+.roomCardImage {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.roomCard .cardBody {
+  padding: 16px;
+}
+
+.roomCard h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.roomCard p {
+  margin: 4px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.roomPrice {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--success);
+  margin-top: 8px;
+}
+
+.summaryReview {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reviewSection {
+  background: var(--bg-card);
+  border: 2px solid var(--border-light);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.reviewSection h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reviewCard {
+  background: var(--table-row-even);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.reviewCard p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.reviewCard strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.reviewImage {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.reviewTotal {
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--bg-card) 100%);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.reviewTotal h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.totalAmount {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Compact Summary for Step 4 */
+.summaryCompact {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.summaryGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.summaryCard {
+  background: var(--bg-card);
+  border: 2px solid var(--border-light);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.cardTitle {
+  background: var(--table-row-even);
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-light);
+}
+
+.cardContent {
+  padding: 12px 14px;
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.mainInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.mainInfo h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+}
+
+.detailsInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.imageColumn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.roomImage {
+  width: 100%;
+  max-width: 180px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.diasBadge {
+  background: transparent;
+  border: 3px solid var(--accent);
+  color: var(--accent);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+.diasNumber {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.diasLabel {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cardContent p {
+  margin: 6px 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
+.cardContent strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.roomInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.roomThumb {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.priceTag {
+  color: var(--success) !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+}
+
+.totalCard {
+  border-color: var(--accent);
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--bg-card) 100%);
+}
+
+.totalCard .cardTitle {
+  background: var(--accent);
+  color: white;
+  border-bottom-color: var(--accent);
+}
+
+.totalValue {
+  padding: 20px 14px;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+@media (max-width: 768px) {
+  .stepIndicator {
+    padding: 0 10px;
+  }
+
+  .stepNumber {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .stepLabel {
+    font-size: 11px;
+  }
+
+  .stepLine {
+    top: 20px;
+  }
+
+  .selectionGrid {
+    grid-template-columns: 1fr;
+    max-height: 400px;
+  }
+
+  .stepTitle {
+    font-size: 18px;
+  }
+
+  .totalAmount {
+    font-size: 28px;
+  }
+
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .diasNumber {
+    font-size: 28px;
+  }
+
+  .diasLabel {
+    font-size: 12px;
+  }
+
+  .roomImage {
+    max-width: 100%;
+  }
+}

@@ -6,6 +6,7 @@ import quartoCasal from '../assets/images/quartoCasal.png';
 import quartoSuite from '../assets/images/quartoSuite.png';
 import quartoLuxuoso from '../assets/images/quartoLuxuoso.png';
 import ConfirmModal from '../components/ConfirmModal';
+import AlertModal from '../components/AlertModal';
 
 const Reservas = () => {
   const [reservas, setReservas] = useState([]);
@@ -13,10 +14,14 @@ const Reservas = () => {
   const [quartos, setQuartos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [editingId, setEditingId] = useState(null);
+  const [formStep, setFormStep] = useState(1);
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: '', message: '' });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, reservaId: null });
   const [clienteSearch, setClienteSearch] = useState('');
   const [quartoSearch, setQuartoSearch] = useState('');
+  const [tipoQuartoFilter, setTipoQuartoFilter] = useState('');
+  const [faixaPrecoFilter, setFaixaPrecoFilter] = useState('');
   const [filterCpf, setFilterCpf] = useState('');
   const [filterQuartoNumero, setFilterQuartoNumero] = useState('');
   const datePickerRef = useRef(null);
@@ -34,12 +39,17 @@ const Reservas = () => {
   }, []);
 
   useEffect(() => {
-    if (datePickerRef.current && window.flatpickr && showForm) {
+    if (datePickerRef.current && window.flatpickr && showForm && formStep === 3) {
+      // Destruir instância anterior se existir
+      if (flatpickrInstance.current) {
+        flatpickrInstance.current.destroy();
+      }
+
       flatpickrInstance.current = window.flatpickr(datePickerRef.current, {
         mode: 'range',
         dateFormat: 'd/m/Y',
         locale: 'pt',
-        minDate: 'today',
+        minDate: editingId ? undefined : 'today',
         onChange: function(selectedDates) {
           if (selectedDates.length === 2) {
             const [checkIn, checkOut] = selectedDates;
@@ -57,14 +67,27 @@ const Reservas = () => {
           }
         }
       });
+
+      // Se tem datas no formData (modo edição), seta após criação
+      if (editingId && formData.dataCheckIn && formData.dataCheckOut) {
+        setTimeout(() => {
+          if (flatpickrInstance.current) {
+            // Converter strings para objetos Date com hora local
+            const checkInDate = new Date(formData.dataCheckIn + 'T00:00:00');
+            const checkOutDate = new Date(formData.dataCheckOut + 'T00:00:00');
+            flatpickrInstance.current.setDate([checkInDate, checkOutDate], false);
+          }
+        }, 0);
+      }
     }
 
     return () => {
       if (flatpickrInstance.current) {
         flatpickrInstance.current.destroy();
+        flatpickrInstance.current = null;
       }
     };
-  }, [showForm]);
+  }, [showForm, formStep, editingId]);
 
   const fetchData = async () => {
     try {
@@ -83,9 +106,8 @@ const Reservas = () => {
     }
   };
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  const showMessage = (type, message) => {
+    setAlertModal({ isOpen: true, type, message });
   };
 
   const handleInputChange = (e) => {
@@ -100,18 +122,43 @@ const Reservas = () => {
       dataCheckOut: '',
     });
     setShowForm(false);
+    setEditingId(null);
+    setFormStep(1);
+    setClienteSearch('');
+    setQuartoSearch('');
+    setTipoQuartoFilter('');
+    setFaixaPrecoFilter('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/reservas', formData);
-      showMessage('success', 'Reserva criada com sucesso!');
+      if (editingId) {
+        await api.put(`/reservas/${editingId}`, formData);
+        showMessage('success', 'Reserva atualizada com sucesso!');
+      } else {
+        await api.post('/reservas', formData);
+        showMessage('success', 'Reserva criada com sucesso!');
+      }
       await fetchData(); // Recarrega todos os dados incluindo quartos atualizados
       resetForm();
     } catch (error) {
-      showMessage('error', error.response?.data?.error || 'Erro ao criar reserva');
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erro ao salvar reserva';
+      showMessage('error', errorMessage);
     }
+  };
+
+  const handleEdit = (reserva) => {
+    setFormData({
+      clienteId: reserva.clienteId.toString(),
+      quartoId: reserva.quartoId.toString(),
+      dataCheckIn: reserva.dataCheckIn,
+      dataCheckOut: reserva.dataCheckOut,
+      status: reserva.status
+    });
+    setEditingId(reserva.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleUpdateStatus = async (id, status) => {
@@ -120,7 +167,8 @@ const Reservas = () => {
       showMessage('success', 'Status atualizado com sucesso!');
       await fetchData(); // Recarrega todos os dados incluindo quartos atualizados
     } catch (error) {
-      showMessage('error', 'Erro ao atualizar status');
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erro ao atualizar status';
+      showMessage('error', errorMessage);
     }
   };
 
@@ -134,7 +182,8 @@ const Reservas = () => {
       showMessage('success', 'Reserva excluída com sucesso!');
       await fetchData(); // Recarrega todos os dados incluindo quartos atualizados
     } catch (error) {
-      showMessage('error', 'Erro ao excluir reserva');
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erro ao excluir reserva';
+      showMessage('error', errorMessage);
     } finally {
       setConfirmModal({ isOpen: false, reservaId: null });
     }
@@ -162,9 +211,9 @@ const Reservas = () => {
       return null;
     }
     
-    const checkIn = new Date(formData.dataCheckIn);
-    const checkOut = new Date(formData.dataCheckOut);
-    const diffTime = Math.abs(checkOut - checkIn);
+    const checkIn = new Date(formData.dataCheckIn + 'T00:00:00');
+    const checkOut = new Date(formData.dataCheckOut + 'T00:00:00');
+    const diffTime = checkOut - checkIn;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const valorDiaria = parseFloat(selectedRoom.valorDiaria);
     const total = diffDays * valorDiaria;
@@ -183,79 +232,199 @@ const Reservas = () => {
           <h1>📅 Gerenciamento de Reservas</h1>
           <button
             className={showForm ? 'btn btn-danger' : 'btn btn-primary'}
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              if (showForm) {
+                resetForm();
+              } else {
+                setShowForm(true);
+              }
+            }}
           >
             {showForm ? '✕ Cancelar' : '+ Nova Reserva'}
           </button>
         </div>
 
-        {message.text && (
-          <div className={`alert alert-${message.type}`}>{message.text}</div>
-        )}
-
         {showForm && (
           <div className="card">
             <div className={styles.formHeader}>
-              <h2>➕ Nova Reserva</h2>
-              <p className={styles.formSubtitle}>
-                Selecione o cliente, quarto disponível e as datas da reserva
-              </p>
+              <h2>{editingId ? '✏️ Editar Reserva' : '➕ Nova Reserva'}</h2>
+              <div className={styles.stepIndicator}>
+                <div className={`${styles.step} ${formStep >= 1 ? styles.active : ''} ${formStep > 1 ? styles.completed : ''}`}>
+                  <span className={styles.stepNumber}>1</span>
+                  <span className={styles.stepLabel}>Cliente</span>
+                  <div className={styles.stepLine}></div>
+                </div>
+                <div className={`${styles.step} ${formStep >= 2 ? styles.active : ''} ${formStep > 2 ? styles.completed : ''}`}>
+                  <span className={styles.stepNumber}>2</span>
+                  <span className={styles.stepLabel}>Quarto</span>
+                  <div className={styles.stepLine}></div>
+                </div>
+                <div className={`${styles.step} ${formStep >= 3 ? styles.active : ''} ${formStep > 3 ? styles.completed : ''}`}>
+                  <span className={styles.stepNumber}>3</span>
+                  <span className={styles.stepLabel}>Período</span>
+                  <div className={styles.stepLine}></div>
+                </div>
+                <div className={`${styles.step} ${formStep >= 4 ? styles.active : ''}`}>
+                  <span className={styles.stepNumber}>4</span>
+                  <span className={styles.stepLabel}>Confirmar</span>
+                </div>
+              </div>
             </div>
             <form onSubmit={handleSubmit}>
-              <div className={styles.reservationFormGrid}>
-                {/* Coluna Esquerda - Seleções */}
-                <div className={styles.selectionColumn}>
+              
+              {/* STEP 1: Seleção de Cliente */}
+              {formStep === 1 && (
+                <div className={styles.formStepContent}>
+                  <h3 className={styles.stepTitle}>👤 Selecione o Hóspede</h3>
                   <div className="form-group">
-                    <label>👤 Cliente *</label>
-                    <select
-                      name="clienteId"
-                      value={formData.clienteId}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Selecione um cliente</option>
-                      {clientes.map((cliente) => (
-                        <option key={cliente.id} value={cliente.id}>
-                          {cliente.nome} - {cliente.cpf}
-                        </option>
-                      ))}
-                    </select>
+                    <label>🔍 Buscar Cliente</label>
+                    <input
+                      type="text"
+                      placeholder="Digite o nome ou CPF do cliente..."
+                      value={clienteSearch}
+                      onChange={(e) => setClienteSearch(e.target.value)}
+                      className={styles.searchInput}
+                    />
                   </div>
-                  <div className="form-group">
-                    <label>🛏️ Quarto *</label>
-                    <select
-                      name="quartoId"
-                      value={formData.quartoId}
-                      onChange={handleInputChange}
-                      required
-                    >
-                      <option value="">Selecione um quarto disponível</option>
-                      {quartos
-                        .filter((q) => q.disponivel)
-                        .map((quarto) => (
-                          <option key={quarto.id} value={quarto.id}>
-                            Quarto {quarto.numero} - {quarto.tipo} - R${' '}
-                            {parseFloat(quarto.valorDiaria).toFixed(2)}/dia
-                          </option>
-                        ))}
-                    </select>
-                    {selectedRoom && (
-                      <div className={styles.roomPreview}>
-                        <img 
-                          src={getRoomImage(selectedRoom.tipo)} 
-                          alt={selectedRoom.tipo}
-                          className={styles.previewImage}
-                        />
-                        <div className={styles.previewInfo}>
-                          <span className={styles.previewType}>{selectedRoom.tipo}</span>
-                          <span className={styles.previewNumber}>Quarto {selectedRoom.numero}</span>
-                          <span className={styles.previewPrice}>
-                            R$ {parseFloat(selectedRoom.valorDiaria).toFixed(2)}/dia
-                          </span>
+                  <div className={styles.selectionGrid}>
+                    {clientes
+                      .filter(c => 
+                        !clienteSearch || 
+                        c.nome.toLowerCase().includes(clienteSearch.toLowerCase()) ||
+                        c.cpf.includes(clienteSearch)
+                      )
+                      .map(cliente => (
+                        <div 
+                          key={cliente.id}
+                          className={`${styles.selectionCard} ${formData.clienteId === cliente.id.toString() ? styles.selected : ''}`}
+                          onClick={() => setFormData({...formData, clienteId: cliente.id.toString()})}
+                        >
+                          <div className={styles.cardIcon}>👤</div>
+                          <div className={styles.cardInfo}>
+                            <h4>{cliente.nome}</h4>
+                            <p>CPF: {cliente.cpf}</p>
+                            <p>Email: {cliente.email}</p>
+                          </div>
+                          {formData.clienteId === cliente.id.toString() && (
+                            <div className={styles.selectedBadge}>✓</div>
+                          )}
                         </div>
-                      </div>
-                    )}
+                      ))}
                   </div>
+                  <div className={styles.formButtons}>
+                    <button 
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setFormStep(2)}
+                      disabled={!formData.clienteId}
+                    >
+                      Continuar para Quarto →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 2: Seleção de Quarto */}
+              {formStep === 2 && (
+                <div className={styles.formStepContent}>
+                  <h3 className={styles.stepTitle}>🛏️ Selecione o Quarto</h3>
+                  
+                  <div className={styles.filtersRow}>
+                    <div className="form-group">
+                      <label>🏨 Tipo do Quarto</label>
+                      <select
+                        value={tipoQuartoFilter}
+                        onChange={(e) => setTipoQuartoFilter(e.target.value)}
+                        className={styles.filterSelect}
+                      >
+                        <option value="">Todos os tipos</option>
+                        <option value="Solteiro">Solteiro</option>
+                        <option value="Casal">Casal</option>
+                        <option value="Suíte">Suíte</option>
+                        <option value="Luxo">Luxo</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>💵 Valor da Diária (R$)</label>
+                      <select
+                        value={faixaPrecoFilter}
+                        onChange={(e) => setFaixaPrecoFilter(e.target.value)}
+                        className={styles.filterSelect}
+                      >
+                        <option value="">R$ 0 - R$ 1500</option>
+                        <option value="0-250">Até R$250</option>
+                        <option value="250-500">R$250 a R$500</option>
+                        <option value="500-750">R$500 a R$750</option>
+                        <option value="750-1000">R$750 a R$1000</option>
+                        <option value="1000+">Mais de R$1000</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.selectionGrid}>
+                    {quartos
+                      .filter((q) => q.disponivel || (editingId && q.id.toString() === formData.quartoId))
+                      .filter((q) => {
+                        if (!tipoQuartoFilter) return true;
+                        return q.tipo === tipoQuartoFilter;
+                      })
+                      .filter((q) => {
+                        if (!faixaPrecoFilter) return true;
+                        const preco = parseFloat(q.valorDiaria);
+                        if (faixaPrecoFilter === '0-250') return preco <= 250;
+                        if (faixaPrecoFilter === '250-500') return preco > 250 && preco <= 500;
+                        if (faixaPrecoFilter === '500-750') return preco > 500 && preco <= 750;
+                        if (faixaPrecoFilter === '750-1000') return preco > 750 && preco <= 1000;
+                        if (faixaPrecoFilter === '1000+') return preco > 1000;
+                        return true;
+                      })
+                      .map(quarto => (
+                        <div
+                          key={quarto.id}
+                          className={`${styles.selectionCard} ${styles.roomCard} ${formData.quartoId === quarto.id.toString() ? styles.selected : ''}`}
+                          onClick={() => setFormData({...formData, quartoId: quarto.id.toString()})}
+                        >
+                          <img 
+                            src={getRoomImage(quarto.tipo)} 
+                            alt={quarto.tipo}
+                            className={styles.roomCardImage}
+                          />
+                          <div className={styles.cardInfo}>
+                            <h4>Quarto {quarto.numero}</h4>
+                            <p>{quarto.tipo}</p>
+                            <p className={styles.roomPrice}>R$ {parseFloat(quarto.valorDiaria).toFixed(2)}/dia</p>
+                          </div>
+                          {formData.quartoId === quarto.id.toString() && (
+                            <div className={styles.selectedBadge}>✓</div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                  <div className={styles.formButtons}>
+                    <button 
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setFormStep(1)}
+                    >
+                      ← Voltar
+                    </button>
+                    <button 
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setFormStep(3)}
+                      disabled={!formData.quartoId}
+                    >
+                      Continuar para Período →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: Seleção de Período */}
+              {formStep === 3 && (
+                <div className={styles.formStepContent}>
+                  <h3 className={styles.stepTitle}>📅 Selecione o Período da Estadia</h3>
                   <div className="form-group">
                     <label>📅 Período da Reserva *</label>
                     <div className={styles.dateInputGroup}>
@@ -275,64 +444,112 @@ const Reservas = () => {
                       Clique para selecionar a data de entrada e saída
                     </div>
                   </div>
+                  <div className={styles.formButtons}>
+                    <button 
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setFormStep(2)}
+                    >
+                      ← Voltar
+                    </button>
+                    <button 
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setFormStep(4)}
+                      disabled={!formData.dataCheckIn || !formData.dataCheckOut}
+                    >
+                      Continuar para Resumo →
+                    </button>
+                  </div>
                 </div>
+              )}
 
-                {/* Coluna Direita - Resumo */}
-                <div className={styles.summaryColumn}>
-                  {reservationTotal ? (
-                    <div className={styles.reservationSummary}>
-                      <div className={styles.summaryHeader}>
-                        <h3>💰 Resumo da Reserva</h3>
-                      </div>
-                      <div className={styles.summaryContent}>
+              {/* STEP 4: Resumo e Confirmação */}
+              {formStep === 4 && reservationTotal && (
+                <div className={styles.formStepContent}>
+                  <h3 className={styles.stepTitle}>✅ Confirme os Dados da Reserva</h3>
+                  <div className={styles.summaryCompact}>
+                    <div className={styles.summaryGrid}>
+                      <div className={styles.summaryCard}>
+                        <div className={styles.cardTitle}>👤 Cliente</div>
                         {selectedClient && (
-                          <div className={styles.summaryRow}>
-                            <span className={styles.summaryLabel}>👤 Cliente:</span>
-                            <span className={styles.summaryValue}>
-                              {selectedClient.nome}
-                            </span>
+                          <div className={styles.cardContent}>
+                            <div className={styles.cardGrid}>
+                              <div className={styles.mainInfo}>
+                                <h3>{selectedClient.nome}</h3>
+                              </div>
+                              <div className={styles.detailsInfo}>
+                                <p><strong>CPF:</strong> {selectedClient.cpf}</p>
+                                <p><strong>Email:</strong> {selectedClient.email}</p>
+                              </div>
+                            </div>
                           </div>
                         )}
-                        <div className={styles.summaryRow}>
-                          <span className={styles.summaryLabel}>🛏️ Quarto:</span>
-                          <span className={styles.summaryValue}>
-                            {selectedRoom.tipo} - Nº {selectedRoom.numero}
-                          </span>
-                        </div>
-                        <div className={styles.summaryDivider}></div>
-                        <div className={styles.summaryRow}>
-                          <span className={styles.summaryLabel}>📅 Total de Diárias:</span>
-                          <span className={styles.summaryValue}>
-                            {reservationTotal.days} {reservationTotal.days === 1 ? 'dia' : 'dias'}
-                          </span>
-                        </div>
-                        <div className={styles.summaryRow}>
-                          <span className={styles.summaryLabel}>💵 Valor por Diária:</span>
-                          <span className={styles.summaryValue}>
-                            R$ {parseFloat(selectedRoom.valorDiaria).toFixed(2)}
-                          </span>
-                        </div>
-                        <div className={`${styles.summaryRow} ${styles.summaryTotal}`}>
-                          <span className={styles.summaryLabel}>🎯 Valor Total:</span>
-                          <span className={styles.summaryValueTotal}>
-                            R$ {reservationTotal.total.toFixed(2)}
-                          </span>
+                      </div>
+
+                      <div className={styles.summaryCard}>
+                        <div className={styles.cardTitle}>🛏️ Quarto</div>
+                        {selectedRoom && (
+                          <div className={styles.cardContent}>
+                            <div className={styles.cardGrid}>
+                              <div className={styles.imageColumn}>
+                                <img 
+                                  src={getRoomImage(selectedRoom.tipo)} 
+                                  alt={selectedRoom.tipo}
+                                  className={styles.roomImage}
+                                />
+                              </div>
+                              <div className={styles.detailsInfo}>
+                                <p><strong>Número:</strong> {selectedRoom.numero}</p>
+                                <p><strong>Tipo:</strong> {selectedRoom.tipo}</p>
+                                <p><strong>Diária:</strong> <span className={styles.priceTag}>R$ {parseFloat(selectedRoom.valorDiaria).toFixed(2)}</span></p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className={styles.summaryCard}>
+                        <div className={styles.cardTitle}>📅 Período</div>
+                        <div className={styles.cardContent}>
+                          <div className={styles.cardGrid}>
+                            <div className={styles.mainInfo}>
+                              <div className={styles.diasBadge}>
+                                <div className={styles.diasNumber}>{reservationTotal.days}</div>
+                                <div className={styles.diasLabel}>{reservationTotal.days === 1 ? 'diária' : 'diárias'}</div>
+                              </div>
+                            </div>
+                            <div className={styles.detailsInfo}>
+                              <p><strong>Check-in:</strong> {new Date(formData.dataCheckIn + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
+                              <p><strong>Check-out:</strong> {new Date(formData.dataCheckOut + 'T00:00:00').toLocaleDateString('pt-BR')}</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className={styles.formButtons}>
-                        <button type="submit" className="btn btn-success">
-                          ✓ Criar Reserva
-                        </button>
+
+                      <div className={styles.summaryCard + ' ' + styles.totalCard}>
+                        <div className={styles.cardTitle}>💰 Total</div>
+                        <div className={styles.totalValue}>
+                          R$ {reservationTotal.total.toFixed(2)}
+                        </div>
                       </div>
                     </div>
-                  ) : (
-                    <div className={styles.summaryPlaceholder}>
-                      <div className={styles.placeholderIcon}>💰</div>
-                      <p>Selecione um quarto e período para ver o resumo da reserva</p>
+
+                    <div className={styles.formButtons}>
+                      <button 
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => setFormStep(3)}
+                      >
+                        ← Voltar
+                      </button>
+                      <button type="submit" className="btn btn-success">
+                        {editingId ? '✓ Salvar Alterações' : '✓ Confirmar Reserva'}
+                      </button>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </form>
           </div>
         )}
@@ -454,11 +671,16 @@ const Reservas = () => {
                   </div>
                   <div className={styles.cardActions}>
                     <button
+                      className={styles.btnEdit}
+                      onClick={() => handleEdit(reserva)}
+                    >
+                      ✏️ Editar
+                    </button>
+                    <button
                       className={styles.btnDelete}
                       onClick={() => handleDelete(reserva.id)}
-                      style={{ width: '100%' }}
                     >
-                      🗑️ Excluir Reserva
+                      🗑️ Excluir
                     </button>
                   </div>
                 </div>
@@ -469,6 +691,13 @@ const Reservas = () => {
         </div>
       </div>
       </div>
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        type={alertModal.type}
+        message={alertModal.message}
+        onClose={() => setAlertModal({ isOpen: false, type: '', message: '' })}
+      />
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}

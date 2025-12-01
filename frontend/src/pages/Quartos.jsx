@@ -13,9 +13,8 @@ const Quartos = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: '', message: '' });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, quartoId: null });
-  const [alertModal, setAlertModal] = useState({ isOpen: false, message: '' });
   const [filterTipo, setFilterTipo] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterValorMin, setFilterValorMin] = useState('');
@@ -54,9 +53,8 @@ const Quartos = () => {
     return imageMap[tipo] || quartoSolteiro;
   };
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  const showMessage = (type, message) => {
+    setAlertModal({ isOpen: true, type, message });
   };
 
   const handleInputChange = (e) => {
@@ -108,6 +106,7 @@ const Quartos = () => {
     });
     setEditingId(quarto.id);
     setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
@@ -120,12 +119,8 @@ const Quartos = () => {
       showMessage('success', 'Quarto excluído com sucesso!');
       fetchQuartos();
     } catch (error) {
-      const errorMessage = error.response?.data?.error || 'Erro ao excluir quarto';
-      if (error.response?.status === 400) {
-        setAlertModal({ isOpen: true, message: errorMessage });
-      } else {
-        showMessage('error', errorMessage);
-      }
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erro ao excluir quarto';
+      showMessage('error', errorMessage);
     } finally {
       setConfirmModal({ isOpen: false, quartoId: null });
     }
@@ -161,10 +156,6 @@ const Quartos = () => {
             {showForm ? '✕ Cancelar' : '+ Novo Quarto'}
           </button>
         </div>
-
-        {message.text && (
-          <div className={`alert alert-${message.type}`}>{message.text}</div>
-        )}
 
         {showForm && (
           <div className="card">
@@ -433,6 +424,13 @@ const Quartos = () => {
           </div>
         </div>
       </div>
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        type={alertModal.type}
+        message={alertModal.message}
+        onClose={() => setAlertModal({ isOpen: false, type: '', message: '' })}
+      />
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}

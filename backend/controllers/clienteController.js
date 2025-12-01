@@ -75,6 +75,18 @@ exports.deletar = async (req, res) => {
       return res.status(404).json({ error: 'Cliente não encontrado.' });
     }
 
+    // Verificar se o cliente possui reservas
+    const Reserva = require('../models/Reserva');
+    const reservasAtivas = await Reserva.count({ 
+      where: { clienteId: id }
+    });
+
+    if (reservasAtivas > 0) {
+      return res.status(400).json({ 
+        error: 'Não é possível excluir este cliente pois ele possui reservas cadastradas.' 
+      });
+    }
+
     await cliente.destroy();
     res.json({ message: 'Cliente deletado com sucesso!' });
   } catch (error) {

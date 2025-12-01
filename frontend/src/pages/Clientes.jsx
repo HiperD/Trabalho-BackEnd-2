@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import styles from './Crud.module.css';
 import ConfirmModal from '../components/ConfirmModal';
+import AlertModal from '../components/AlertModal';
 
 const Clientes = () => {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [message, setMessage] = useState({ type: '', text: '' });
+  const [alertModal, setAlertModal] = useState({ isOpen: false, type: '', message: '' });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, clienteId: null });
   const [filterNome, setFilterNome] = useState('');
   const [filterCpf, setFilterCpf] = useState('');
@@ -45,9 +46,8 @@ const Clientes = () => {
     }
   };
 
-  const showMessage = (type, text) => {
-    setMessage({ type, text });
-    setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+  const showMessage = (type, message) => {
+    setAlertModal({ isOpen: true, type, message });
   };
 
   const formatCPF = (value) => {
@@ -231,6 +231,8 @@ const Clientes = () => {
     });
     setEditingId(cliente.id);
     setShowForm(true);
+    setFormStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id) => {
@@ -243,7 +245,8 @@ const Clientes = () => {
       showMessage('success', 'Cliente excluído com sucesso!');
       fetchClientes();
     } catch (error) {
-      showMessage('error', 'Erro ao excluir cliente');
+      const errorMessage = error.response?.data?.error || 'Erro ao excluir cliente';
+      showMessage('error', errorMessage);
     } finally {
       setConfirmModal({ isOpen: false, clienteId: null });
     }
@@ -263,10 +266,6 @@ const Clientes = () => {
             {showForm ? '✕ Cancelar' : '+ Novo Cliente'}
           </button>
         </div>
-
-        {message.text && (
-          <div className={`alert alert-${message.type}`}>{message.text}</div>
-        )}
 
         {showForm && (
           <div className="card">
@@ -581,6 +580,13 @@ const Clientes = () => {
       </div>
       </div>
       </div>
+
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        type={alertModal.type}
+        message={alertModal.message}
+        onClose={() => setAlertModal({ isOpen: false, type: '', message: '' })}
+      />
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}
