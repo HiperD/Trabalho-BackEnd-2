@@ -20,10 +20,12 @@ const Reservas = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, reservaId: null });
   const [clienteSearch, setClienteSearch] = useState('');
   const [quartoSearch, setQuartoSearch] = useState('');
+  const [quartoNumeroFilter, setQuartoNumeroFilter] = useState('');
   const [tipoQuartoFilter, setTipoQuartoFilter] = useState('');
   const [faixaPrecoFilter, setFaixaPrecoFilter] = useState('');
   const [filterCpf, setFilterCpf] = useState('');
   const [filterQuartoNumero, setFilterQuartoNumero] = useState('');
+  const [availableQuartos, setAvailableQuartos] = useState([]);
   const datePickerRef = useRef(null);
   const flatpickrInstance = useRef(null);
   
@@ -39,7 +41,7 @@ const Reservas = () => {
   }, []);
 
   useEffect(() => {
-    if (datePickerRef.current && window.flatpickr && showForm && formStep === 3) {
+    if (datePickerRef.current && window.flatpickr && showForm && formStep === 2) {
       // Destruir instância anterior se existir
       if (flatpickrInstance.current) {
         flatpickrInstance.current.destroy();
@@ -58,6 +60,8 @@ const Reservas = () => {
               dataCheckIn: checkIn.toISOString().split('T')[0],
               dataCheckOut: checkOut.toISOString().split('T')[0]
             }));
+            // Filtrar quartos disponíveis
+            filterAvailableQuartos(checkIn.toISOString().split('T')[0], checkOut.toISOString().split('T')[0]);
           }
         },
         onClose: function(selectedDates) {
@@ -126,6 +130,7 @@ const Reservas = () => {
     setFormStep(1);
     setClienteSearch('');
     setQuartoSearch('');
+    setQuartoNumeroFilter('');
     setTipoQuartoFilter('');
     setFaixaPrecoFilter('');
   };
@@ -133,16 +138,28 @@ const Reservas = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Preparar dados para envio (garantir tipos corretos)
+      const reservaData = {
+        clienteId: parseInt(formData.clienteId),
+        quartoId: parseInt(formData.quartoId),
+        dataCheckIn: formData.dataCheckIn,
+        dataCheckOut: formData.dataCheckOut
+      };
+      
+      console.log('Enviando reserva:', reservaData);
+      
       if (editingId) {
-        await api.put(`/reservas/${editingId}`, formData);
+        await api.put(`/reservas/${editingId}`, reservaData);
         showMessage('success', 'Reserva atualizada com sucesso!');
       } else {
-        await api.post('/reservas', formData);
+        await api.post('/reservas', reservaData);
         showMessage('success', 'Reserva criada com sucesso!');
       }
       await fetchData(); // Recarrega todos os dados incluindo quartos atualizados
       resetForm();
     } catch (error) {
+      console.error('Erro ao salvar reserva:', error);
+      console.error('Resposta do servidor:', error.response?.data);
       const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Erro ao salvar reserva';
       showMessage('error', errorMessage);
     }
@@ -191,6 +208,75 @@ const Reservas = () => {
 
   const formatDate = (dateString) => {
     return new Date(dateString + 'T00:00:00').toLocaleDateString('pt-BR');
+  };
+
+  const filterAvailableQuartos = (checkIn, checkOut) => {
+    console.log('=== FILTRO DE QUARTOS DISPONÍVEIS ===');
+    console.log('Período solicitado:', checkIn, 'até', checkOut);
+    console.log('Total de quartos:', quartos.length);
+    console.log('Total de reservas:', reservas.length);
+    
+    const disponveis = quartos.filter(quarto => {
+      console.log(`\n--- Analisando Quarto ${quarto.numero} (ID: ${quarto.id}) ---`);
+      console.log('Campo disponivel no BD:', quarto.disponivel);
+      
+      // Se está editando, permitir o quarto atual
+      if (editingId) {
+        const reservaAtual = reservas.find(r => r.id === editingId);
+        if (reservaAtual && reservaAtual.quartoId === quarto.id) {
+          console.log(`✓ Quarto ${quarto.numero} permitido (editando reserva atual)`);
+          return true;
+        }
+      }
+      
+      // Verificar se o quarto tem alguma reserva confirmada que conflita com o período
+      const reservasDoQuarto = reservas.filter(r => r.quartoId === quarto.id && r.status === 'Confirmada');
+      console.log(`Reservas confirmadas do quarto ${quarto.numero}:`, reservasDoQuarto.length);
+      
+      const temConflito = reservasDoQuarto.some(reserva => {
+        // Ignorar a reserva que está sendo editada
+        if (editingId && reserva.id === editingId) {
+          console.log('  - Ignorando reserva atual (editando)');
+          return false;
+        }
+        
+        const reservaCheckIn = reserva.dataCheckIn.split('T')[0];
+        const reservaCheckOut = reserva.dataCheckOut.split('T')[0];
+        
+        console.log(`  - Reserva: ${reservaCheckIn} até ${reservaCheckOut}`);
+        
+        // Há conflito se os períodos se sobrepõem
+        // NÃO há conflito se:
+        // - Nova reserva termina antes ou no dia que reserva existente começa (checkOut <= reservaCheckIn)
+        // - Nova reserva começa no dia ou depois que reserva existente termina (checkIn >= reservaCheckOut)
+        const naoTemConflito = (checkOut <= reservaCheckIn) || (checkIn >= reservaCheckOut);
+        const conflito = !naoTemConflito;
+        
+        if (conflito) {
+          console.log(`  ✗ CONFLITO encontrado:`, {
+            novaReserva: { checkIn, checkOut },
+            reservaExistente: { checkIn: reservaCheckIn, checkOut: reservaCheckOut }
+          });
+        } else {
+          console.log(`  ✓ Sem conflito com esta reserva`);
+        }
+        
+        return conflito;
+      });
+      
+      if (!temConflito) {
+        console.log(`✓ Quarto ${quarto.numero} DISPONÍVEL`);
+      } else {
+        console.log(`✗ Quarto ${quarto.numero} INDISPONÍVEL (conflito de datas)`);
+      }
+      
+      return !temConflito;
+    });
+    
+    console.log('\n=== RESULTADO ===');
+    console.log('Quartos disponíveis:', disponveis.length, 'de', quartos.length);
+    console.log('Números dos quartos disponíveis:', disponveis.map(q => q.numero));
+    setAvailableQuartos(disponveis);
   };
 
   const getRoomImage = (tipo) => {
@@ -256,12 +342,12 @@ const Reservas = () => {
                 </div>
                 <div className={`${styles.step} ${formStep >= 2 ? styles.active : ''} ${formStep > 2 ? styles.completed : ''}`}>
                   <span className={styles.stepNumber}>2</span>
-                  <span className={styles.stepLabel}>Quarto</span>
+                  <span className={styles.stepLabel}>Período</span>
                   <div className={styles.stepLine}></div>
                 </div>
                 <div className={`${styles.step} ${formStep >= 3 ? styles.active : ''} ${formStep > 3 ? styles.completed : ''}`}>
                   <span className={styles.stepNumber}>3</span>
-                  <span className={styles.stepLabel}>Período</span>
+                  <span className={styles.stepLabel}>Quarto</span>
                   <div className={styles.stepLine}></div>
                 </div>
                 <div className={`${styles.step} ${formStep >= 4 ? styles.active : ''}`}>
@@ -318,18 +404,77 @@ const Reservas = () => {
                       onClick={() => setFormStep(2)}
                       disabled={!formData.clienteId}
                     >
-                      Continuar para Quarto →
+                      Continuar para Período →
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* STEP 2: Seleção de Quarto */}
+              {/* STEP 2: Seleção de Período */}
               {formStep === 2 && (
                 <div className={styles.formStepContent}>
-                  <h3 className={styles.stepTitle}>🛏️ Selecione o Quarto</h3>
+                  <h3 className={styles.stepTitle}>📅 Selecione o Período da Estadia</h3>
+                  <div className="form-group">
+                    <label>📅 Período da Reserva *</label>
+                    <div className={styles.dateInputGroup}>
+                      <input
+                        ref={datePickerRef}
+                        type="text"
+                        placeholder="Selecione check-in e check-out"
+                        className={styles.dateRangeInput}
+                        readOnly
+                        required
+                      />
+                      <span className={styles.calendarIcon}>
+                        <i className="bi bi-calendar-range">📅</i>
+                      </span>
+                    </div>
+                    <div className={styles.dateHelp}>
+                      Clique para selecionar a data de entrada e saída
+                    </div>
+                  </div>
+                  <div className={styles.formButtons}>
+                    <button 
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setFormStep(1)}
+                    >
+                      ← Voltar
+                    </button>
+                    <button 
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={() => setFormStep(3)}
+                      disabled={!formData.dataCheckIn || !formData.dataCheckOut}
+                    >
+                      Continuar para Quartos →
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: Seleção de Quarto */}
+              {formStep === 3 && (
+                <div className={styles.formStepContent}>
+                  <div className={styles.listHeader}>
+                    <h3 className={styles.stepTitle}>🛏️ Selecione o Quarto</h3>
+                    <span className={styles.resultsCount}>
+                      {availableQuartos.length} {availableQuartos.length === 1 ? 'quarto disponível' : 'quartos disponíveis'} ({new Date(formData.dataCheckIn + 'T00:00:00').toLocaleDateString('pt-BR')} - {new Date(formData.dataCheckOut + 'T00:00:00').toLocaleDateString('pt-BR')})
+                    </span>
+                  </div>
                   
                   <div className={styles.filtersRow}>
+                    <div className="form-group">
+                      <label>🔢 Número do Quarto</label>
+                      <input
+                        type="text"
+                        placeholder="Ex: 101, 223..."
+                        value={quartoNumeroFilter}
+                        onChange={(e) => setQuartoNumeroFilter(e.target.value)}
+                        className={styles.filterInput}
+                      />
+                    </div>
+
                     <div className="form-group">
                       <label>🏨 Tipo do Quarto</label>
                       <select
@@ -352,7 +497,7 @@ const Reservas = () => {
                         onChange={(e) => setFaixaPrecoFilter(e.target.value)}
                         className={styles.filterSelect}
                       >
-                        <option value="">R$ 0 - R$ 1500</option>
+                        <option value="">Todos os valores</option>
                         <option value="0-250">Até R$250</option>
                         <option value="250-500">R$250 a R$500</option>
                         <option value="500-750">R$500 a R$750</option>
@@ -363,8 +508,11 @@ const Reservas = () => {
                   </div>
 
                   <div className={styles.selectionGrid}>
-                    {quartos
-                      .filter((q) => q.disponivel || (editingId && q.id.toString() === formData.quartoId))
+                    {availableQuartos
+                      .filter((q) => {
+                        if (!quartoNumeroFilter) return true;
+                        return q.numero.toString().includes(quartoNumeroFilter);
+                      })
                       .filter((q) => {
                         if (!tipoQuartoFilter) return true;
                         return q.tipo === tipoQuartoFilter;
@@ -401,49 +549,30 @@ const Reservas = () => {
                         </div>
                       ))}
                   </div>
-                  <div className={styles.formButtons}>
-                    <button 
-                      type="button"
-                      className="btn btn-secondary"
-                      onClick={() => setFormStep(1)}
-                    >
-                      ← Voltar
-                    </button>
-                    <button 
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => setFormStep(3)}
-                      disabled={!formData.quartoId}
-                    >
-                      Continuar para Período →
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: Seleção de Período */}
-              {formStep === 3 && (
-                <div className={styles.formStepContent}>
-                  <h3 className={styles.stepTitle}>📅 Selecione o Período da Estadia</h3>
-                  <div className="form-group">
-                    <label>📅 Período da Reserva *</label>
-                    <div className={styles.dateInputGroup}>
-                      <input
-                        ref={datePickerRef}
-                        type="text"
-                        placeholder="Selecione check-in e check-out"
-                        className={styles.dateRangeInput}
-                        readOnly
-                        required
-                      />
-                      <span className={styles.calendarIcon}>
-                        <i className="bi bi-calendar-range">📅</i>
-                      </span>
+                  {availableQuartos
+                    .filter((q) => !quartoNumeroFilter || q.numero.toString().includes(quartoNumeroFilter))
+                    .filter((q) => !tipoQuartoFilter || q.tipo === tipoQuartoFilter)
+                    .filter((q) => {
+                      if (!faixaPrecoFilter) return true;
+                      const preco = parseFloat(q.valorDiaria);
+                      if (faixaPrecoFilter === '0-250') return preco <= 250;
+                      if (faixaPrecoFilter === '250-500') return preco > 250 && preco <= 500;
+                      if (faixaPrecoFilter === '500-750') return preco > 500 && preco <= 750;
+                      if (faixaPrecoFilter === '750-1000') return preco > 750 && preco <= 1000;
+                      if (faixaPrecoFilter === '1000+') return preco > 1000;
+                      return true;
+                    }).length === 0 && availableQuartos.length > 0 && (
+                    <div className={styles.noResults}>
+                      <p>🔍 Nenhum quarto encontrado com os filtros aplicados.</p>
+                      <p>Tente ajustar os filtros ou limpar a pesquisa.</p>
                     </div>
-                    <div className={styles.dateHelp}>
-                      Clique para selecionar a data de entrada e saída
+                  )}
+                  {availableQuartos.length === 0 && (
+                    <div className={styles.noResults}>
+                      <p>😔 Nenhum quarto disponível para o período selecionado.</p>
+                      <p>Tente selecionar outras datas ou entre em contato conosco.</p>
                     </div>
-                  </div>
+                  )}
                   <div className={styles.formButtons}>
                     <button 
                       type="button"
@@ -456,7 +585,7 @@ const Reservas = () => {
                       type="button"
                       className="btn btn-primary"
                       onClick={() => setFormStep(4)}
-                      disabled={!formData.dataCheckIn || !formData.dataCheckOut}
+                      disabled={!formData.quartoId}
                     >
                       Continuar para Resumo →
                     </button>

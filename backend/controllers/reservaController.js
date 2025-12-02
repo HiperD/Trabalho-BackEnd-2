@@ -47,14 +47,48 @@ exports.criar = async (req, res) => {
       return res.status(404).json({ error: 'Cliente não encontrado.' });
     }
 
-    // Verificar se quarto existe e está disponível
+    // Verificar se quarto existe
     const quarto = await Quarto.findByPk(quartoId);
     if (!quarto) {
       return res.status(404).json({ error: 'Quarto não encontrado.' });
     }
 
-    if (!quarto.disponivel) {
-      return res.status(400).json({ error: 'Quarto não está disponível.' });
+    // Verificar se há conflito de datas com outras reservas confirmadas
+    const { Op } = require('sequelize');
+    const reservasConflitantes = await Reserva.findAll({
+      where: {
+        quartoId,
+        status: 'Confirmada',
+        [Op.or]: [
+          {
+            // Nova reserva começa durante uma reserva existente
+            [Op.and]: [
+              { dataCheckIn: { [Op.lte]: dataCheckIn } },
+              { dataCheckOut: { [Op.gt]: dataCheckIn } }
+            ]
+          },
+          {
+            // Nova reserva termina durante uma reserva existente
+            [Op.and]: [
+              { dataCheckIn: { [Op.lt]: dataCheckOut } },
+              { dataCheckOut: { [Op.gte]: dataCheckOut } }
+            ]
+          },
+          {
+            // Nova reserva envolve completamente uma reserva existente
+            [Op.and]: [
+              { dataCheckIn: { [Op.gte]: dataCheckIn } },
+              { dataCheckOut: { [Op.lte]: dataCheckOut } }
+            ]
+          }
+        ]
+      }
+    });
+
+    if (reservasConflitantes.length > 0) {
+      return res.status(400).json({ 
+        error: 'Quarto não está disponível para o período selecionado. Já existe uma reserva confirmada neste período.' 
+      });
     }
 
     // Calcular número de dias e valor total
@@ -77,9 +111,6 @@ exports.criar = async (req, res) => {
       dataCheckOut,
       valorTotal,
     });
-
-    // Atualizar disponibilidade do quarto
-    await quarto.update({ disponivel: false });
 
     const reservaCompleta = await Reserva.findByPk(reserva.id, {
       include: [
@@ -107,41 +138,53 @@ exports.atualizar = async (req, res) => {
     // Se está atualizando apenas o status
     if (status && !clienteId && !quartoId && !dataCheckIn && !dataCheckOut) {
       await reserva.update({ status });
-
-      // Atualizar disponibilidade do quarto baseado no status
-      const quarto = await Quarto.findByPk(reserva.quartoId);
-      if (quarto) {
-        if (status === 'Confirmada') {
-          // Reserva confirmada = quarto ocupado (indisponível)
-          await quarto.update({ disponivel: false });
-        } else if (status === 'Cancelada' || status === 'Finalizada') {
-          // Reserva cancelada ou finalizada = quarto livre (disponível)
-          await quarto.update({ disponivel: true });
-        }
-      }
     } else {
       // Atualização completa da reserva
       const quartoAntigoId = reserva.quartoId;
       
-      // Verificar se o novo quarto existe e está disponível (se mudou de quarto)
-      // Converter para número para comparação correta
-      if (quartoId && parseInt(quartoId) !== quartoAntigoId) {
-        const novoQuarto = await Quarto.findByPk(quartoId);
-        if (!novoQuarto) {
-          return res.status(404).json({ error: 'Quarto não encontrado.' });
-        }
-        if (!novoQuarto.disponivel) {
-          return res.status(400).json({ error: 'Quarto não está disponível.' });
-        }
+      // Verificar se o novo quarto tem conflito de datas (se mudou de quarto ou datas)
+      if (quartoId || dataCheckIn || dataCheckOut) {
+        const quartoParaVerificar = parseInt(quartoId) || quartoAntigoId;
+        const checkInParaVerificar = dataCheckIn || reserva.dataCheckIn;
+        const checkOutParaVerificar = dataCheckOut || reserva.dataCheckOut;
         
-        // Liberar o quarto antigo
-        const quartoAntigo = await Quarto.findByPk(quartoAntigoId);
-        if (quartoAntigo) {
-          await quartoAntigo.update({ disponivel: true });
+        const { Op } = require('sequelize');
+        const reservasConflitantes = await Reserva.findAll({
+          where: {
+            id: { [Op.ne]: id }, // Excluir a reserva atual
+            quartoId: quartoParaVerificar,
+            status: 'Confirmada',
+            [Op.or]: [
+              {
+                // Nova reserva começa durante uma reserva existente
+                [Op.and]: [
+                  { dataCheckIn: { [Op.lte]: checkInParaVerificar } },
+                  { dataCheckOut: { [Op.gt]: checkInParaVerificar } }
+                ]
+              },
+              {
+                // Nova reserva termina durante uma reserva existente
+                [Op.and]: [
+                  { dataCheckIn: { [Op.lt]: checkOutParaVerificar } },
+                  { dataCheckOut: { [Op.gte]: checkOutParaVerificar } }
+                ]
+              },
+              {
+                // Nova reserva envolve completamente uma reserva existente
+                [Op.and]: [
+                  { dataCheckIn: { [Op.gte]: checkInParaVerificar } },
+                  { dataCheckOut: { [Op.lte]: checkOutParaVerificar } }
+                ]
+              }
+            ]
+          }
+        });
+
+        if (reservasConflitantes.length > 0) {
+          return res.status(400).json({ 
+            error: 'Quarto não está disponível para o período selecionado. Já existe uma reserva confirmada neste período.' 
+          });
         }
-        
-        // Ocupar o novo quarto
-        await novoQuarto.update({ disponivel: false });
       }
 
       // Recalcular valor total se mudou o período ou o quarto
@@ -170,19 +213,6 @@ exports.atualizar = async (req, res) => {
         valorTotal,
         status: novoStatus
       });
-
-      // Atualizar disponibilidade do quarto atual baseado no status
-      const quartoAtualId = quartoId || quartoAntigoId;
-      const quartoAtual = await Quarto.findByPk(quartoAtualId);
-      if (quartoAtual) {
-        if (novoStatus === 'Confirmada') {
-          // Reserva confirmada = quarto ocupado (indisponível)
-          await quartoAtual.update({ disponivel: false });
-        } else if (novoStatus === 'Cancelada' || novoStatus === 'Finalizada') {
-          // Reserva cancelada ou finalizada = quarto livre (disponível)
-          await quartoAtual.update({ disponivel: true });
-        }
-      }
     }
 
     const reservaAtualizada = await Reserva.findByPk(id, {
@@ -205,12 +235,6 @@ exports.deletar = async (req, res) => {
     const reserva = await Reserva.findByPk(id);
     if (!reserva) {
       return res.status(404).json({ error: 'Reserva não encontrada.' });
-    }
-
-    // Liberar o quarto
-    const quarto = await Quarto.findByPk(reserva.quartoId);
-    if (quarto) {
-      await quarto.update({ disponivel: true });
     }
 
     await reserva.destroy();

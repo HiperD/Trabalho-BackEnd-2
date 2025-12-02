@@ -162,6 +162,22 @@
   transform: translateY(-1px);
 }
 
+.btnCalendar {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1.5px solid var(--border-hover);
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btnCalendar:hover {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+  transform: translateY(-1px);
+}
+
 .btnDelete {
   background: transparent;
   color: var(--text-secondary);
@@ -877,6 +893,31 @@
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
+.filterInput {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--bg-card);
+  transition: all 0.2s ease;
+}
+
+.filterInput:hover {
+  border-color: var(--border-hover);
+}
+
+.filterInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.filterInput::placeholder {
+  color: var(--text-disabled);
+}
+
 .stepTitle {
   font-size: 20px;
   font-weight: 700;
@@ -1252,6 +1293,40 @@
   font-size: 28px;
   font-weight: 700;
   color: var(--accent);
+}
+
+.availabilityInfo {
+  background: var(--table-row-even);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.availabilityInfo strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.noResults {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.noResults p:first-child {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.noResults p:last-child {
+  font-size: 15px;
 }
 
 @media (max-width: 768px) {

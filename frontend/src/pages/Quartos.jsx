@@ -7,6 +7,7 @@ import quartoSuite from '../assets/images/quartoSuite.png';
 import quartoLuxuoso from '../assets/images/quartoLuxuoso.png';
 import ConfirmModal from '../components/ConfirmModal';
 import AlertModal from '../components/AlertModal';
+import CalendarModal from '../components/CalendarModal';
 
 const Quartos = () => {
   const [quartos, setQuartos] = useState([]);
@@ -15,10 +16,13 @@ const Quartos = () => {
   const [editingId, setEditingId] = useState(null);
   const [alertModal, setAlertModal] = useState({ isOpen: false, type: '', message: '' });
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, quartoId: null });
+  const [calendarModal, setCalendarModal] = useState({ isOpen: false, quarto: null });
+  const [reservas, setReservas] = useState([]);
   const [filterTipo, setFilterTipo] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterValorMin, setFilterValorMin] = useState('');
   const [filterValorMax, setFilterValorMax] = useState('');
+  const [filterNumero, setFilterNumero] = useState('');
   
   const [formData, setFormData] = useState({
     numero: '',
@@ -34,8 +38,12 @@ const Quartos = () => {
 
   const fetchQuartos = async () => {
     try {
-      const response = await api.get('/quartos');
-      setQuartos(response.data);
+      const [quartosRes, reservasRes] = await Promise.all([
+        api.get('/quartos'),
+        api.get('/reservas')
+      ]);
+      setQuartos(quartosRes.data);
+      setReservas(reservasRes.data);
     } catch (error) {
       showMessage('error', 'Erro ao carregar quartos');
     } finally {
@@ -51,6 +59,20 @@ const Quartos = () => {
       'Luxo': quartoLuxuoso
     };
     return imageMap[tipo] || quartoSolteiro;
+  };
+
+  const isRoomOccupiedToday = (quartoId) => {
+    const today = new Date().toISOString().split('T')[0];
+    return reservas.some(reserva => {
+      if (reserva.quartoId !== quartoId || reserva.status !== 'Confirmada') return false;
+      const checkIn = reserva.dataCheckIn.split('T')[0];
+      const checkOut = reserva.dataCheckOut.split('T')[0];
+      return today >= checkIn && today <= checkOut;
+    });
+  };
+
+  const handleViewCalendar = (quarto) => {
+    setCalendarModal({ isOpen: true, quarto });
   };
 
   const showMessage = (type, message) => {
@@ -131,15 +153,17 @@ const Quartos = () => {
     setFilterStatus('');
     setFilterValorMin('');
     setFilterValorMax('');
+    setFilterNumero('');
   };
 
   const filteredQuartos = quartos.filter((quarto) => {
+    const numeroMatch = !filterNumero || quarto.numero.toString().includes(filterNumero);
     const tipoMatch = !filterTipo || quarto.tipo === filterTipo;
     const statusMatch = !filterStatus || (filterStatus === 'disponivel' ? quarto.disponivel : !quarto.disponivel);
     const valorMinMatch = !filterValorMin || parseFloat(quarto.valorDiaria) >= parseFloat(filterValorMin);
     const valorMaxMatch = !filterValorMax || filterValorMax === '1500' || parseFloat(quarto.valorDiaria) <= parseFloat(filterValorMax);
     
-    return tipoMatch && statusMatch && valorMinMatch && valorMaxMatch;
+    return numeroMatch && tipoMatch && statusMatch && valorMinMatch && valorMaxMatch;
   });
 
   if (loading) return <div className="loading">Carregando...</div>;
@@ -236,6 +260,23 @@ const Quartos = () => {
               <h3>🔍 Filtros</h3>
             </div>
             
+            <div className={styles.filterSection}>
+              <label className={styles.filterLabel}>🔢 Número do Quarto</label>
+              <input
+                type="text"
+                value={filterNumero}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Aceita apenas números
+                  if (value === '' || /^\d+$/.test(value)) {
+                    setFilterNumero(value);
+                  }
+                }}
+                placeholder="Ex: 101, 202..."
+                className={styles.filterInput}
+              />
+            </div>
+
             <div className={styles.filterSection}>
               <label className={styles.filterLabel}>🏛️ Tipo do Quarto</label>
               <select
@@ -335,7 +376,7 @@ const Quartos = () => {
               </div>
             </div>
 
-            {(filterTipo || filterStatus || filterValorMin || filterValorMax) && (
+            {(filterNumero || filterTipo || filterStatus || filterValorMin || filterValorMax) && (
               <button 
                 onClick={clearFilters}
                 className={styles.clearFiltersBtn}
@@ -385,14 +426,14 @@ const Quartos = () => {
                     <div className={styles.infoRow}>
                       <span className={styles.label}>🟢 Status:</span>
                       <span className={styles.badge} style={{
-                        backgroundColor: quarto.disponivel ? '#dcfce7' : '#fee2e2',
-                        color: quarto.disponivel ? '#15803d' : '#b91c1c',
+                        backgroundColor: isRoomOccupiedToday(quarto.id) ? '#fee2e2' : '#dcfce7',
+                        color: isRoomOccupiedToday(quarto.id) ? '#b91c1c' : '#15803d',
                         padding: '4px 12px',
                         borderRadius: '12px',
                         fontSize: '13px',
                         fontWeight: '600'
                       }}>
-                        {quarto.disponivel ? '✓ Disponível' : '✗ Ocupado'}
+                        {isRoomOccupiedToday(quarto.id) ? '🔒 Ocupado hoje' : '✓ Disponível hoje'}
                       </span>
                     </div>
                     {quarto.descricao && (
@@ -408,6 +449,12 @@ const Quartos = () => {
                       onClick={() => handleEdit(quarto)}
                     >
                       ✏️ Editar
+                    </button>
+                    <button
+                      className={styles.btnCalendar}
+                      onClick={() => handleViewCalendar(quarto)}
+                    >
+                      📅 Disponibilidade
                     </button>
                     <button
                       className={styles.btnDelete}
@@ -440,11 +487,10 @@ const Quartos = () => {
         onCancel={() => setConfirmModal({ isOpen: false, quartoId: null })}
       />
 
-      <AlertModal
-        isOpen={alertModal.isOpen}
-        title="Ação não permitida"
-        message={alertModal.message}
-        onClose={() => setAlertModal({ isOpen: false, message: '' })}
+      <CalendarModal
+        isOpen={calendarModal.isOpen}
+        quarto={calendarModal.quarto}
+        onClose={() => setCalendarModal({ isOpen: false, quarto: null })}
       />
     </div>
   );
