@@ -2,10 +2,34 @@ const Cliente = require('../models/Cliente');
 
 exports.listar = async (req, res) => {
   try {
-    const clientes = await Cliente.findAll({
+    const { page = 1, limit = 10, nome, cpf } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Construir condições de filtro
+    const { Op } = require('sequelize');
+    const whereClause = {};
+    
+    if (nome) {
+      whereClause.nome = { [Op.like]: `%${nome}%` };
+    }
+    
+    if (cpf) {
+      whereClause.cpf = { [Op.like]: `%${cpf}%` };
+    }
+
+    const { count, rows } = await Cliente.findAndCountAll({
+      where: whereClause,
       order: [['nome', 'ASC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
     });
-    res.json(clientes);
+
+    res.json({
+      clientes: rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+    });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar clientes.', details: error.message });
   }

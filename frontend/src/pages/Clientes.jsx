@@ -16,6 +16,7 @@ const Clientes = () => {
   const [cepLoading, setCepLoading] = useState(false);
   const [cepError, setCepError] = useState('');
   const [formStep, setFormStep] = useState(1); // 1: Dados Pessoais, 2: Endereço
+  const [displayCount, setDisplayCount] = useState(10); // Paginação
   
   const [formData, setFormData] = useState({
     nome: '',
@@ -35,10 +36,15 @@ const Clientes = () => {
     fetchClientes();
   }, []);
 
+  // Resetar paginação quando filtros mudarem
+  useEffect(() => {
+    setDisplayCount(10);
+  }, [filterNome, filterCpf]);
+
   const fetchClientes = async () => {
     try {
-      const response = await api.get('/clientes');
-      setClientes(response.data);
+      const response = await api.get('/clientes', { params: { limit: 1000 } });
+      setClientes(response.data.clientes || response.data);
     } catch (error) {
       showMessage('error', 'Erro ao carregar clientes');
     } finally {
@@ -517,14 +523,16 @@ const Clientes = () => {
               {clientes.length === 0 ? (
                 <p>Nenhum cliente cadastrado.</p>
               ) : (
-                <div className={styles.cardsGrid}>
-                  {clientes
-                    .filter(cliente => {
-                      const nomeMatch = !filterNome || cliente.nome.toLowerCase().includes(filterNome.toLowerCase());
-                      const cpfMatch = !filterCpf || cliente.cpf.includes(filterCpf);
-                      return nomeMatch && cpfMatch;
-                    })
-                    .map((cliente) => (
+                <>
+                  <div className={styles.cardsGrid}>
+                    {clientes
+                      .filter(cliente => {
+                        const nomeMatch = !filterNome || cliente.nome.toLowerCase().includes(filterNome.toLowerCase());
+                        const cpfMatch = !filterCpf || cliente.cpf.includes(filterCpf);
+                        return nomeMatch && cpfMatch;
+                      })
+                      .slice(0, displayCount)
+                      .map((cliente) => (
                 <div key={cliente.id} className={styles.itemCard}>
                   <div className={styles.cardHeader}>
                     <div className={styles.cardIcon}>👤</div>
@@ -574,8 +582,27 @@ const Clientes = () => {
                   </div>
                 </div>
               ))}
-            </div>
-          )}
+                  </div>
+                  
+                  {/* Botão Ver Mais */}
+                  {clientes
+                    .filter(cliente => {
+                      const nomeMatch = !filterNome || cliente.nome.toLowerCase().includes(filterNome.toLowerCase());
+                      const cpfMatch = !filterCpf || cliente.cpf.includes(filterCpf);
+                      return nomeMatch && cpfMatch;
+                    }).length > displayCount && (
+                    <div style={{ textAlign: 'center', marginTop: '20px', padding: '20px' }}>
+                      <button
+                        onClick={() => setDisplayCount(prev => prev + 10)}
+                        className="btn btn-primary"
+                        style={{ minWidth: '200px' }}
+                      >
+                        Ver Mais (+10)
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
         </div>
       </div>
       </div>

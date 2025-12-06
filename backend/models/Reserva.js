@@ -17,6 +17,11 @@ const Reserva = sequelize.define('Reserva', {
       key: 'id',
     },
   },
+  clienteIds: {
+    type: DataTypes.JSONB, // Array de IDs dos hóspedes
+    allowNull: false,
+    defaultValue: [],
+  },
   quartoId: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -37,6 +42,11 @@ const Reserva = sequelize.define('Reserva', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
+  numeroHospedes: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
+  },
   status: {
     type: DataTypes.ENUM('Confirmada', 'Cancelada', 'Finalizada'),
     defaultValue: 'Confirmada',
@@ -46,9 +56,7 @@ const Reserva = sequelize.define('Reserva', {
   timestamps: true,
 });
 
-// Relacionamentos
-Reserva.belongsTo(Cliente, { foreignKey: 'clienteId', as: 'cliente' });
-Reserva.belongsTo(Quarto, { foreignKey: 'quartoId', as: 'quarto' });
+module.exports = Reserva;
 
 Cliente.hasMany(Reserva, { foreignKey: 'clienteId', as: 'reservas' });
 Quarto.hasMany(Reserva, { foreignKey: 'quartoId', as: 'reservas' });

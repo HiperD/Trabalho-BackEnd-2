@@ -4,14 +4,38 @@ const Quarto = require('../models/Quarto');
 
 exports.listar = async (req, res) => {
   try {
-    const reservas = await Reserva.findAll({
-      include: [
-        { model: Cliente, as: 'cliente' },
-        { model: Quarto, as: 'quarto' },
-      ],
+    const { page = 1, limit = 10, cpf, quartoNumero } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Construir condições de filtro
+    const whereClause = {};
+    const includeOptions = [
+      { 
+        model: Cliente, 
+        as: 'cliente',
+        where: cpf ? { cpf: { [require('sequelize').Op.like]: `%${cpf}%` } } : undefined
+      },
+      { 
+        model: Quarto, 
+        as: 'quarto',
+        where: quartoNumero ? { numero: { [require('sequelize').Op.like]: `%${quartoNumero}%` } } : undefined
+      },
+    ];
+
+    const { count, rows } = await Reserva.findAndCountAll({
+      where: whereClause,
+      include: includeOptions,
       order: [['dataCheckIn', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
     });
-    res.json(reservas);
+
+    res.json({
+      reservas: rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: parseInt(page),
+    });
   } catch (error) {
     res.status(500).json({ error: 'Erro ao listar reservas.', details: error.message });
   }
@@ -39,18 +63,34 @@ exports.buscarPorId = async (req, res) => {
 
 exports.criar = async (req, res) => {
   try {
-    const { clienteId, quartoId, dataCheckIn, dataCheckOut } = req.body;
+    const { clienteId, clienteIds, quartoId, dataCheckIn, dataCheckOut, numeroHospedes } = req.body;
+    
+    console.log('📥 Dados recebidos no backend:', { clienteId, clienteIds, quartoId, numeroHospedes });
 
-    // Verificar se cliente existe
-    const cliente = await Cliente.findByPk(clienteId);
-    if (!cliente) {
-      return res.status(404).json({ error: 'Cliente não encontrado.' });
+    // Suportar tanto clienteId único quanto clienteIds array
+    const idsClientes = clienteIds && Array.isArray(clienteIds) ? clienteIds : [clienteId];
+    
+    console.log('👥 IDs de clientes processados:', idsClientes);
+
+    // Verificar se todos os clientes existem
+    for (const id of idsClientes) {
+      const cliente = await Cliente.findByPk(id);
+      if (!cliente) {
+        return res.status(404).json({ error: `Cliente com ID ${id} não encontrado.` });
+      }
     }
 
     // Verificar se quarto existe
     const quarto = await Quarto.findByPk(quartoId);
     if (!quarto) {
       return res.status(404).json({ error: 'Quarto não encontrado.' });
+    }
+
+    // Validar capacidade do quarto
+    if (idsClientes.length > quarto.capacidade) {
+      return res.status(400).json({ 
+        error: `Número de hóspedes (${idsClientes.length}) excede a capacidade do quarto (${quarto.capacidade}).` 
+      });
     }
 
     // Verificar se há conflito de datas com outras reservas confirmadas
@@ -105,12 +145,17 @@ exports.criar = async (req, res) => {
 
     // Criar reserva
     const reserva = await Reserva.create({
-      clienteId,
+      clienteId: idsClientes[0], // Cliente principal
+      clienteIds: idsClientes, // Array com todos os hóspedes
       quartoId,
       dataCheckIn,
       dataCheckOut,
       valorTotal,
+      numeroHospedes: numeroHospedes || idsClientes.length,
     });
+    
+    console.log('✅ Reserva criada com sucesso! ID:', reserva.id);
+    console.log('✅ Hóspedes:', idsClientes);
 
     const reservaCompleta = await Reserva.findByPk(reserva.id, {
       include: [
@@ -128,7 +173,10 @@ exports.criar = async (req, res) => {
 exports.atualizar = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, clienteId, quartoId, dataCheckIn, dataCheckOut } = req.body;
+    const { status, clienteId, clienteIds, quartoId, dataCheckIn, dataCheckOut, numeroHospedes } = req.body;
+    
+    console.log('📝 Atualizando reserva ID:', id);
+    console.log('📥 Dados recebidos:', { status, clienteId, clienteIds, quartoId, numeroHospedes });
 
     const reserva = await Reserva.findByPk(id);
     if (!reserva) {
@@ -136,11 +184,22 @@ exports.atualizar = async (req, res) => {
     }
 
     // Se está atualizando apenas o status
-    if (status && !clienteId && !quartoId && !dataCheckIn && !dataCheckOut) {
+    if (status && !clienteId && !clienteIds && !quartoId && !dataCheckIn && !dataCheckOut) {
       await reserva.update({ status });
     } else {
       // Atualização completa da reserva
       const quartoAntigoId = reserva.quartoId;
+      const idsClientes = clienteIds && Array.isArray(clienteIds) ? clienteIds : (clienteId ? [clienteId] : null);
+      
+      // Validar capacidade do quarto se fornecido novos hóspedes
+      if (idsClientes && idsClientes.length > 0) {
+        const quartoParaValidar = await Quarto.findByPk(quartoId || quartoAntigoId);
+        if (quartoParaValidar && idsClientes.length > quartoParaValidar.capacidade) {
+          return res.status(400).json({ 
+            error: `Número de hóspedes (${idsClientes.length}) excede a capacidade do quarto (${quartoParaValidar.capacidade}).` 
+          });
+        }
+      }
       
       // Verificar se o novo quarto tem conflito de datas (se mudou de quarto ou datas)
       if (quartoId || dataCheckIn || dataCheckOut) {
@@ -205,14 +264,19 @@ exports.atualizar = async (req, res) => {
 
       // Atualizar a reserva
       const novoStatus = status || reserva.status;
+      
       await reserva.update({
-        clienteId: clienteId || reserva.clienteId,
+        clienteId: idsClientes ? idsClientes[0] : reserva.clienteId,
+        clienteIds: idsClientes || reserva.clienteIds, // Atualizar array de hóspedes
         quartoId: quartoId || reserva.quartoId,
         dataCheckIn: dataCheckIn || reserva.dataCheckIn,
         dataCheckOut: dataCheckOut || reserva.dataCheckOut,
         valorTotal,
+        numeroHospedes: numeroHospedes || idsClientes?.length || reserva.numeroHospedes,
         status: novoStatus
       });
+      
+      console.log('✅ Reserva atualizada com hóspedes:', idsClientes);
     }
 
     const reservaAtualizada = await Reserva.findByPk(id, {

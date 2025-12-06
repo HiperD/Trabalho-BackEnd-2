@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import styles from './Crud.module.css';
 import quartoSolteiro from '../assets/images/quartoSolteiro.png';
+import quartoSolteiroDuas from '../assets/images/quartoSolteiroDuas.png';
 import quartoCasal from '../assets/images/quartoCasal.png';
 import quartoSuite from '../assets/images/quartoSuite.png';
 import quartoLuxuoso from '../assets/images/quartoLuxuoso.png';
@@ -23,10 +24,12 @@ const Quartos = () => {
   const [filterValorMin, setFilterValorMin] = useState('');
   const [filterValorMax, setFilterValorMax] = useState('');
   const [filterNumero, setFilterNumero] = useState('');
+  const [displayCount, setDisplayCount] = useState(10); // Paginação
   
   const [formData, setFormData] = useState({
     numero: '',
     tipo: 'Solteiro',
+    capacidade: 1,
     valorDiaria: '',
     disponivel: true,
     descricao: '',
@@ -36,14 +39,19 @@ const Quartos = () => {
     fetchQuartos();
   }, []);
 
+  // Resetar paginação quando filtros mudarem
+  useEffect(() => {
+    setDisplayCount(10);
+  }, [filterTipo, filterStatus, filterValorMin, filterValorMax, filterNumero]);
+
   const fetchQuartos = async () => {
     try {
       const [quartosRes, reservasRes] = await Promise.all([
-        api.get('/quartos'),
-        api.get('/reservas')
+        api.get('/quartos', { params: { limit: 1000 } }),
+        api.get('/reservas', { params: { limit: 1000 } })
       ]);
-      setQuartos(quartosRes.data);
-      setReservas(reservasRes.data);
+      setQuartos(quartosRes.data.quartos || quartosRes.data);
+      setReservas(reservasRes.data.reservas || reservasRes.data);
     } catch (error) {
       showMessage('error', 'Erro ao carregar quartos');
     } finally {
@@ -54,6 +62,7 @@ const Quartos = () => {
   const getRoomImage = (tipo) => {
     const imageMap = {
       'Solteiro': quartoSolteiro,
+      'SolteiroDuas': quartoSolteiroDuas,
       'Casal': quartoCasal,
       'Suíte': quartoSuite,
       'Luxo': quartoLuxuoso
@@ -88,6 +97,7 @@ const Quartos = () => {
     setFormData({
       numero: '',
       tipo: 'Solteiro',
+      capacidade: 1,
       valorDiaria: '',
       disponivel: true,
       descricao: '',
@@ -122,6 +132,7 @@ const Quartos = () => {
     setFormData({
       numero: quarto.numero,
       tipo: quarto.tipo,
+      capacidade: quarto.capacidade || 1,
       valorDiaria: quarto.valorDiaria,
       disponivel: quarto.disponivel,
       descricao: quarto.descricao || '',
@@ -209,17 +220,42 @@ const Quartos = () => {
                   <select
                     name="tipo"
                     value={formData.tipo}
-                    onChange={handleInputChange}
+                    onChange={(e) => {
+                      const tipo = e.target.value;
+                      let capacidade = 1;
+                      if (tipo === 'Solteiro') capacidade = 1;
+                      else if (tipo === 'SolteiroDuas' || tipo === 'Suíte' || tipo === 'Luxo') capacidade = 2;
+                      else if (tipo === 'Casal') capacidade = 2;
+                      setFormData({...formData, tipo, capacidade});
+                    }}
                     required
                   >
-                    <option value="Solteiro">🛏️ Solteiro</option>
-                    <option value="Casal">🛏️🛏️ Casal</option>
-                    <option value="Suíte">✨ Suíte</option>
-                    <option value="Luxo">👑 Luxo</option>
+                    <option value="Solteiro">🛏️ Solteiro (1 pessoa)</option>
+                    <option value="SolteiroDuas">🛏️🛏️ Solteiro Duas Camas (2 pessoas)</option>
+                    <option value="Casal">💑 Casal (2 pessoas)</option>
+                    <option value="Suíte">✨ Suíte (2 pessoas)</option>
+                    <option value="Luxo">👑 Luxo (2 pessoas)</option>
                   </select>
                 </div>
               </div>
               <div className="form-row">
+                <div className="form-group">
+                  <label>👥 Capacidade *</label>
+                  <input
+                    type="number"
+                    name="capacidade"
+                    value={formData.capacidade}
+                    onChange={handleInputChange}
+                    min="1"
+                    max="2"
+                    required
+                    readOnly
+                    style={{ backgroundColor: 'var(--bg-hover)', cursor: 'not-allowed' }}
+                  />
+                  <small style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                    ℹ️ A capacidade é definida automaticamente pelo tipo do quarto
+                  </small>
+                </div>
                 <div className="form-group">
                   <label>💵 Valor da Diária (R$) *</label>
                   <input
@@ -400,8 +436,9 @@ const Quartos = () => {
               {filteredQuartos.length === 0 ? (
                 <p>Nenhum quarto encontrado com os filtros selecionados.</p>
               ) : (
-                <div className={styles.cardsGrid}>
-                  {filteredQuartos.map((quarto) => (
+                <>
+                  <div className={styles.cardsGrid}>
+                    {filteredQuartos.slice(0, displayCount).map((quarto) => (
                 <div key={quarto.id} className={styles.itemCard}>
                   <img 
                     src={getRoomImage(quarto.tipo)} 
@@ -416,6 +453,10 @@ const Quartos = () => {
                     <div className={styles.infoRow}>
                       <span className={styles.label}>🏛️ Tipo:</span>
                       <span className={styles.value}>{quarto.tipo}</span>
+                    </div>
+                    <div className={styles.infoRow}>
+                      <span className={styles.label}>👥 Capacidade:</span>
+                      <span className={styles.value}>{quarto.capacidade} {quarto.capacidade === 1 ? 'pessoa' : 'pessoas'}</span>
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>💵 Valor Diária:</span>
@@ -465,7 +506,21 @@ const Quartos = () => {
                   </div>
                 </div>
               ))}
-            </div>
+                  </div>
+                  
+                  {/* Botão Ver Mais */}
+                  {filteredQuartos.length > displayCount && (
+                    <div style={{ textAlign: 'center', marginTop: '20px', padding: '20px' }}>
+                      <button
+                        onClick={() => setDisplayCount(prev => prev + 10)}
+                        className="btn btn-primary"
+                        style={{ minWidth: '200px' }}
+                      >
+                        Ver Mais (+10)
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

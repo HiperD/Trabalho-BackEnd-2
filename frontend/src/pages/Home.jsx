@@ -19,10 +19,12 @@ const Home = () => {
 
   const fetchQuartos = async () => {
     try {
-      const response = await api.get('/quartos');
-      setQuartos(response.data);
+      const response = await api.get('/quartos', { params: { limit: 1000 } });
+      const quartosData = response.data.quartos || response.data;
+      setQuartos(Array.isArray(quartosData) ? quartosData : []);
     } catch (error) {
       console.error('Erro ao carregar quartos:', error);
+      setQuartos([]);
     } finally {
       setLoading(false);
     }

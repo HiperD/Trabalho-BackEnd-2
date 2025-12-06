@@ -13,8 +13,13 @@ const Quarto = sequelize.define('Quarto', {
     unique: true,
   },
   tipo: {
-    type: DataTypes.ENUM('Solteiro', 'Casal', 'Suíte', 'Luxo'),
+    type: DataTypes.ENUM('Solteiro', 'SolteiroDuas', 'Casal', 'Suíte', 'Luxo'),
     allowNull: false,
+  },
+  capacidade: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 1,
   },
   valorDiaria: {
     type: DataTypes.DECIMAL(10, 2),
