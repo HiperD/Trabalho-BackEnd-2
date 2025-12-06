@@ -7,6 +7,7 @@ const auditLogger = require('../middleware/auditLogger');
 router.use(authMiddleware);
 
 router.get('/', auditLogger('Listar reservas'), reservaController.listar);
+router.get('/quarto/:quartoId', auditLogger('Buscar reservas por quarto'), reservaController.buscarPorQuarto);
 router.get('/:id', auditLogger('Buscar reserva por ID'), reservaController.buscarPorId);
 router.post('/', auditLogger('Criar reserva'), reservaController.criar);
 router.put('/:id', auditLogger('Atualizar reserva'), reservaController.atualizar);

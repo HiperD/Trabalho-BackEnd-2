@@ -61,6 +61,25 @@ exports.buscarPorId = async (req, res) => {
   }
 };
 
+exports.buscarPorQuarto = async (req, res) => {
+  try {
+    const { quartoId } = req.params;
+
+    const reservas = await Reserva.findAll({
+      where: { quartoId },
+      include: [
+        { model: Cliente, as: 'cliente' },
+        { model: Quarto, as: 'quarto' },
+      ],
+      order: [['dataCheckIn', 'ASC']],
+    });
+
+    res.json(reservas);
+  } catch (error) {
+    res.status(500).json({ error: 'Erro ao buscar reservas do quarto.', details: error.message });
+  }
+};
+
 exports.criar = async (req, res) => {
   try {
     const { clienteId, clienteIds, quartoId, dataCheckIn, dataCheckOut, numeroHospedes } = req.body;

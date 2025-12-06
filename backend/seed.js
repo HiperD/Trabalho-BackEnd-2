@@ -83,31 +83,31 @@ async function seed() {
 
     // Criar reservas de exemplo com múltiplos hóspedes no campo clienteIds (JSON) - 20 reservas
     
-    // Reservas Confirmadas (10)
-    await Reserva.create({ clienteId: clientes[0].id, clienteIds: [clientes[0].id], quartoId: quartos[0].id, dataCheckIn: '2024-01-15', dataCheckOut: '2024-01-20', valorTotal: 750.00, numeroHospedes: 1, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[1].id, clienteIds: [clientes[1].id, clientes[2].id], quartoId: quartos[6].id, dataCheckIn: '2024-01-18', dataCheckOut: '2024-01-22', valorTotal: 800.00, numeroHospedes: 2, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[3].id, clienteIds: [clientes[3].id, clientes[4].id], quartoId: quartos[12].id, dataCheckIn: '2024-02-01', dataCheckOut: '2024-02-05', valorTotal: 1200.00, numeroHospedes: 2, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[5].id, clienteIds: [clientes[5].id, clientes[6].id], quartoId: quartos[18].id, dataCheckIn: '2024-02-10', dataCheckOut: '2024-02-15', valorTotal: 2500.00, numeroHospedes: 2, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[7].id, clienteIds: [clientes[7].id], quartoId: quartos[24].id, dataCheckIn: '2024-02-20', dataCheckOut: '2024-02-25', valorTotal: 5000.00, numeroHospedes: 1, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[8].id, clienteIds: [clientes[8].id], quartoId: quartos[1].id, dataCheckIn: '2024-03-01', dataCheckOut: '2024-03-05', valorTotal: 600.00, numeroHospedes: 1, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[9].id, clienteIds: [clientes[9].id, clientes[10].id], quartoId: quartos[7].id, dataCheckIn: '2024-03-10', dataCheckOut: '2024-03-15', valorTotal: 1000.00, numeroHospedes: 2, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[11].id, clienteIds: [clientes[11].id, clientes[12].id], quartoId: quartos[13].id, dataCheckIn: '2024-03-20', dataCheckOut: '2024-03-25', valorTotal: 1500.00, numeroHospedes: 2, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[13].id, clienteIds: [clientes[13].id], quartoId: quartos[19].id, dataCheckIn: '2024-04-01', dataCheckOut: '2024-04-05', valorTotal: 2000.00, numeroHospedes: 1, status: 'Confirmada' });
-    await Reserva.create({ clienteId: clientes[14].id, clienteIds: [clientes[14].id, clientes[15].id], quartoId: quartos[25].id, dataCheckIn: '2024-04-10', dataCheckOut: '2024-04-15', valorTotal: 5000.00, numeroHospedes: 2, status: 'Confirmada' });
+    // Reservas Confirmadas (10) - Datas atuais e futuras (dez/2025 até jun/2026)
+    await Reserva.create({ clienteId: clientes[0].id, clienteIds: [clientes[0].id], quartoId: quartos[0].id, dataCheckIn: '2025-12-10', dataCheckOut: '2025-12-15', valorTotal: 750.00, numeroHospedes: 1, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[1].id, clienteIds: [clientes[1].id, clientes[2].id], quartoId: quartos[6].id, dataCheckIn: '2025-12-20', dataCheckOut: '2025-12-25', valorTotal: 800.00, numeroHospedes: 2, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[3].id, clienteIds: [clientes[3].id, clientes[4].id], quartoId: quartos[12].id, dataCheckIn: '2026-01-05', dataCheckOut: '2026-01-10', valorTotal: 1200.00, numeroHospedes: 2, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[5].id, clienteIds: [clientes[5].id, clientes[6].id], quartoId: quartos[18].id, dataCheckIn: '2026-01-15', dataCheckOut: '2026-01-20', valorTotal: 2500.00, numeroHospedes: 2, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[7].id, clienteIds: [clientes[7].id], quartoId: quartos[24].id, dataCheckIn: '2026-02-01', dataCheckOut: '2026-02-06', valorTotal: 5000.00, numeroHospedes: 1, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[8].id, clienteIds: [clientes[8].id], quartoId: quartos[1].id, dataCheckIn: '2026-02-10', dataCheckOut: '2026-02-15', valorTotal: 600.00, numeroHospedes: 1, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[9].id, clienteIds: [clientes[9].id, clientes[10].id], quartoId: quartos[7].id, dataCheckIn: '2026-03-01', dataCheckOut: '2026-03-06', valorTotal: 1000.00, numeroHospedes: 2, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[11].id, clienteIds: [clientes[11].id, clientes[12].id], quartoId: quartos[13].id, dataCheckIn: '2026-03-15', dataCheckOut: '2026-03-20', valorTotal: 1500.00, numeroHospedes: 2, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[13].id, clienteIds: [clientes[13].id], quartoId: quartos[19].id, dataCheckIn: '2026-04-10', dataCheckOut: '2026-04-15', valorTotal: 2000.00, numeroHospedes: 1, status: 'Confirmada' });
+    await Reserva.create({ clienteId: clientes[14].id, clienteIds: [clientes[14].id, clientes[15].id], quartoId: quartos[25].id, dataCheckIn: '2026-05-01', dataCheckOut: '2026-05-06', valorTotal: 5000.00, numeroHospedes: 2, status: 'Confirmada' });
     
-    // Reservas Canceladas (5)
-    await Reserva.create({ clienteId: clientes[2].id, clienteIds: [clientes[2].id], quartoId: quartos[2].id, dataCheckIn: '2024-01-10', dataCheckOut: '2024-01-12', valorTotal: 300.00, numeroHospedes: 1, status: 'Cancelada' });
-    await Reserva.create({ clienteId: clientes[4].id, clienteIds: [clientes[4].id, clientes[5].id], quartoId: quartos[8].id, dataCheckIn: '2024-02-05', dataCheckOut: '2024-02-08', valorTotal: 600.00, numeroHospedes: 2, status: 'Cancelada' });
-    await Reserva.create({ clienteId: clientes[10].id, clienteIds: [clientes[10].id], quartoId: quartos[14].id, dataCheckIn: '2024-03-15', dataCheckOut: '2024-03-18', valorTotal: 900.00, numeroHospedes: 1, status: 'Cancelada' });
-    await Reserva.create({ clienteId: clientes[15].id, clienteIds: [clientes[15].id, clientes[16].id], quartoId: quartos[20].id, dataCheckIn: '2024-04-20', dataCheckOut: '2024-04-23', valorTotal: 1500.00, numeroHospedes: 2, status: 'Cancelada' });
-    await Reserva.create({ clienteId: clientes[17].id, clienteIds: [clientes[17].id], quartoId: quartos[26].id, dataCheckIn: '2024-05-01', dataCheckOut: '2024-05-05', valorTotal: 4000.00, numeroHospedes: 1, status: 'Cancelada' });
+    // Reservas Canceladas (5) - Algumas futuras canceladas
+    await Reserva.create({ clienteId: clientes[2].id, clienteIds: [clientes[2].id], quartoId: quartos[2].id, dataCheckIn: '2026-01-08', dataCheckOut: '2026-01-10', valorTotal: 300.00, numeroHospedes: 1, status: 'Cancelada' });
+    await Reserva.create({ clienteId: clientes[4].id, clienteIds: [clientes[4].id, clientes[5].id], quartoId: quartos[8].id, dataCheckIn: '2026-02-12', dataCheckOut: '2026-02-15', valorTotal: 600.00, numeroHospedes: 2, status: 'Cancelada' });
+    await Reserva.create({ clienteId: clientes[10].id, clienteIds: [clientes[10].id], quartoId: quartos[14].id, dataCheckIn: '2026-03-08', dataCheckOut: '2026-03-11', valorTotal: 900.00, numeroHospedes: 1, status: 'Cancelada' });
+    await Reserva.create({ clienteId: clientes[15].id, clienteIds: [clientes[15].id, clientes[16].id], quartoId: quartos[20].id, dataCheckIn: '2026-04-20', dataCheckOut: '2026-04-23', valorTotal: 1500.00, numeroHospedes: 2, status: 'Cancelada' });
+    await Reserva.create({ clienteId: clientes[17].id, clienteIds: [clientes[17].id], quartoId: quartos[26].id, dataCheckIn: '2026-05-15', dataCheckOut: '2026-05-20', valorTotal: 4000.00, numeroHospedes: 1, status: 'Cancelada' });
     
-    // Reservas Finalizadas (5)
-    await Reserva.create({ clienteId: clientes[6].id, clienteIds: [clientes[6].id, clientes[7].id], quartoId: quartos[3].id, dataCheckIn: '2023-12-01', dataCheckOut: '2023-12-05', valorTotal: 800.00, numeroHospedes: 2, status: 'Finalizada' });
-    await Reserva.create({ clienteId: clientes[12].id, clienteIds: [clientes[12].id], quartoId: quartos[9].id, dataCheckIn: '2023-12-10', dataCheckOut: '2023-12-15', valorTotal: 1000.00, numeroHospedes: 1, status: 'Finalizada' });
-    await Reserva.create({ clienteId: clientes[16].id, clienteIds: [clientes[16].id, clientes[17].id], quartoId: quartos[15].id, dataCheckIn: '2023-12-20', dataCheckOut: '2023-12-25', valorTotal: 1500.00, numeroHospedes: 2, status: 'Finalizada' });
-    await Reserva.create({ clienteId: clientes[18].id, clienteIds: [clientes[18].id, clientes[19].id], quartoId: quartos[21].id, dataCheckIn: '2024-01-01', dataCheckOut: '2024-01-05', valorTotal: 2000.00, numeroHospedes: 2, status: 'Finalizada' });
-    await Reserva.create({ clienteId: clientes[19].id, clienteIds: [clientes[19].id], quartoId: quartos[27].id, dataCheckIn: '2024-01-10', dataCheckOut: '2024-01-15', valorTotal: 5000.00, numeroHospedes: 1, status: 'Finalizada' });
+    // Reservas Finalizadas (5) - Reservas já concluídas (set-nov/2025)
+    await Reserva.create({ clienteId: clientes[6].id, clienteIds: [clientes[6].id, clientes[7].id], quartoId: quartos[3].id, dataCheckIn: '2025-09-01', dataCheckOut: '2025-09-05', valorTotal: 800.00, numeroHospedes: 2, status: 'Finalizada' });
+    await Reserva.create({ clienteId: clientes[12].id, clienteIds: [clientes[12].id], quartoId: quartos[9].id, dataCheckIn: '2025-09-15', dataCheckOut: '2025-09-20', valorTotal: 1000.00, numeroHospedes: 1, status: 'Finalizada' });
+    await Reserva.create({ clienteId: clientes[16].id, clienteIds: [clientes[16].id, clientes[17].id], quartoId: quartos[15].id, dataCheckIn: '2025-10-10', dataCheckOut: '2025-10-15', valorTotal: 1500.00, numeroHospedes: 2, status: 'Finalizada' });
+    await Reserva.create({ clienteId: clientes[18].id, clienteIds: [clientes[18].id, clientes[19].id], quartoId: quartos[21].id, dataCheckIn: '2025-10-20', dataCheckOut: '2025-10-25', valorTotal: 2000.00, numeroHospedes: 2, status: 'Finalizada' });
+    await Reserva.create({ clienteId: clientes[19].id, clienteIds: [clientes[19].id], quartoId: quartos[27].id, dataCheckIn: '2025-11-01', dataCheckOut: '2025-11-06', valorTotal: 5000.00, numeroHospedes: 1, status: 'Finalizada' });
 
     console.log(`✅ 20 reservas criadas com múltiplos hóspedes`);
 
