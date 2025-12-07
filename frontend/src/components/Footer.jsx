@@ -26,11 +26,11 @@ const Footer = () => {
           <div className={styles.developers}>
             <p className={styles.label}>Desenvolvido por:</p>
             <div className={styles.names}>
-              <span>Pedro</span>
+              <span>Pedro Paulo Valente Bittencourt</span>
               <span className={styles.separator}>•</span>
-              <span>Lucas</span>
+              <span>Lucas Francisco Alves Costa</span>
               <span className={styles.separator}>•</span>
-              <span>Leo</span>
+              <span>Leonardo Silva e Cruz</span>
             </div>
           </div>
         </div>
