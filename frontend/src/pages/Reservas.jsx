@@ -121,6 +121,8 @@ const Reservas = () => {
             const checkInDate = new Date(formData.dataCheckIn + 'T00:00:00');
             const checkOutDate = new Date(formData.dataCheckOut + 'T00:00:00');
             flatpickrInstance.current.setDate([checkInDate, checkOutDate], false);
+            // Filtrar quartos disponíveis no modo edição
+            filterAvailableQuartos(formData.dataCheckIn, formData.dataCheckOut);
           }
         }, 0);
       }
@@ -240,6 +242,12 @@ const Reservas = () => {
       if (cliente) {
         setSelectedHospedes([cliente]);
       }
+    }
+    
+    // Pré-selecionar o filtro do tipo de quarto para facilitar visualização
+    const quartoReserva = quartos.find(q => q.id === reserva.quartoId);
+    if (quartoReserva) {
+      setTipoQuartoFilter(quartoReserva.tipo);
     }
     
     setEditingId(reserva.id);
