@@ -170,7 +170,11 @@ const Quartos = () => {
   const filteredQuartos = quartos.filter((quarto) => {
     const numeroMatch = !filterNumero || quarto.numero.toString().includes(filterNumero);
     const tipoMatch = !filterTipo || quarto.tipo === filterTipo;
-    const statusMatch = !filterStatus || (filterStatus === 'disponivel' ? quarto.disponivel : !quarto.disponivel);
+    
+    // Verificar se está ocupado HOJE baseado nas reservas confirmadas
+    const isOccupied = isRoomOccupiedToday(quarto.id);
+    const statusMatch = !filterStatus || (filterStatus === 'disponivel' ? !isOccupied : isOccupied);
+    
     const valorMinMatch = !filterValorMin || parseFloat(quarto.valorDiaria) >= parseFloat(filterValorMin);
     const valorMaxMatch = !filterValorMax || filterValorMax === '1500' || parseFloat(quarto.valorDiaria) <= parseFloat(filterValorMax);
     

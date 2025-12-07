@@ -15,18 +15,26 @@ const CalendarModal = ({ isOpen, quarto, onClose }) => {
   const fetchReservas = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3000/api/reservas`, {
+      console.log('📅 Buscando reservas do quarto ID:', quarto.id);
+      
+      const response = await fetch(`http://localhost:3000/api/reservas/quarto/${quarto.id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      const reservasDoQuarto = data.filter(r => r.quartoId === quarto.id);
-      console.log('Todas as reservas:', data);
-      console.log('Reservas do quarto', quarto.numero, ':', reservasDoQuarto);
+
+      if (!response.ok) {
+        console.error('❌ Erro na resposta:', response.status, response.statusText);
+        return;
+      }
+
+      const reservasDoQuarto = await response.json();
+      console.log('✅ Reservas recebidas:', reservasDoQuarto);
+      console.log(`📊 Total: ${reservasDoQuarto.length} reserva(s) para o quarto ${quarto.numero}`);
+      
       setReservas(reservasDoQuarto);
     } catch (error) {
-      console.error('Erro ao carregar reservas:', error);
+      console.error('❌ Erro ao carregar reservas:', error);
     }
   };
 
@@ -84,14 +92,24 @@ const CalendarModal = ({ isOpen, quarto, onClose }) => {
     const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
     const dateStr = date.toISOString().split('T')[0];
 
-    return reservas.find(reserva => {
-      if (reserva.status !== 'Confirmada') return false;
+    const reservaEncontrada = reservas.find(reserva => {
+      // Mostrar reservas Confirmadas e Finalizadas (não mostrar Canceladas)
+      if (reserva.status === 'Cancelada') return false;
       
       const checkIn = reserva.dataCheckIn.split('T')[0];
       const checkOut = reserva.dataCheckOut.split('T')[0];
       
-      return dateStr >= checkIn && dateStr < checkOut;
+      const isOccupied = dateStr >= checkIn && dateStr < checkOut;
+      
+      // Log apenas para o primeiro dia de cada reserva (evitar spam)
+      if (isOccupied && dateStr === checkIn) {
+        console.log(`🔴 Reserva #${reserva.id} (${reserva.status}): ${checkIn} até ${checkOut}`);
+      }
+      
+      return isOccupied;
     });
+
+    return reservaEncontrada;
   };
 
   const isDateReserved = (day, isCurrentMonth) => {

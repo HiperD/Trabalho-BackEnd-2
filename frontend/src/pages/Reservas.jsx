@@ -26,7 +26,10 @@ const Reservas = () => {
   const [faixaPrecoFilter, setFaixaPrecoFilter] = useState('');
   const [filterCpf, setFilterCpf] = useState('');
   const [filterQuartoNumero, setFilterQuartoNumero] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterReservaId, setFilterReservaId] = useState('');
   const [availableQuartos, setAvailableQuartos] = useState([]);
+  const [hospedesModal, setHospedesModal] = useState({ isOpen: false, reserva: null });
   const datePickerRef = useRef(null);
   const flatpickrInstance = useRef(null);
   
@@ -72,7 +75,7 @@ const Reservas = () => {
   
   useEffect(() => {
     setReservasDisplayCount(10);
-  }, [filterCpf, filterQuartoNumero]);
+  }, [filterCpf, filterQuartoNumero, filterStatus, filterReservaId]);
 
   useEffect(() => {
     fetchData();
@@ -941,6 +944,17 @@ const Reservas = () => {
             </div>
             
             <div className={styles.filterSection}>
+              <label className={styles.filterLabel}>📋 Número da Reserva</label>
+              <input
+                type="text"
+                placeholder="Digite o número..."
+                value={filterReservaId}
+                onChange={(e) => setFilterReservaId(e.target.value)}
+                className={styles.filterInput}
+              />
+            </div>
+            
+            <div className={styles.filterSection}>
               <label className={styles.filterLabel}>👤 CPF do Hóspede</label>
               <input
                 type="text"
@@ -962,11 +976,27 @@ const Reservas = () => {
               />
             </div>
 
+            <div className={styles.filterSection}>
+              <label className={styles.filterLabel}>📊 Status da Reserva</label>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className={styles.filterInput}
+              >
+                <option value="">Todos os Status</option>
+                <option value="Confirmada">✓ Confirmada</option>
+                <option value="Cancelada">✗ Cancelada</option>
+                <option value="Finalizada">✔ Finalizada</option>
+              </select>
+            </div>
+
             <button
               className={styles.clearFiltersBtn}
               onClick={() => {
+                setFilterReservaId('');
                 setFilterCpf('');
                 setFilterQuartoNumero('');
+                setFilterStatus('');
               }}
             >
               ✕ Limpar Filtros
@@ -981,9 +1011,11 @@ const Reservas = () => {
                 <span className={styles.resultsCount}>
                   {(() => {
                     const count = reservas.filter(reserva => {
+                      const idMatch = !filterReservaId || reserva.id.toString().includes(filterReservaId);
                       const cpfMatch = !filterCpf || reserva.cliente?.cpf.includes(filterCpf);
                       const quartoMatch = !filterQuartoNumero || reserva.quarto?.numero.toString().includes(filterQuartoNumero);
-                      return cpfMatch && quartoMatch;
+                      const statusMatch = !filterStatus || reserva.status === filterStatus;
+                      return idMatch && cpfMatch && quartoMatch && statusMatch;
                     }).length;
                     return count === 1 ? '1 reserva encontrada' : `${count} reservas encontradas`;
                   })()}
@@ -996,9 +1028,11 @@ const Reservas = () => {
                   <div className={styles.cardsGrid}>
                     {reservas
                       .filter(reserva => {
+                        const idMatch = !filterReservaId || reserva.id.toString().includes(filterReservaId);
                         const cpfMatch = !filterCpf || reserva.cliente?.cpf.includes(filterCpf);
                         const quartoMatch = !filterQuartoNumero || reserva.quarto?.numero.toString().includes(filterQuartoNumero);
-                        return cpfMatch && quartoMatch;
+                        const statusMatch = !filterStatus || reserva.status === filterStatus;
+                        return idMatch && cpfMatch && quartoMatch && statusMatch;
                       })
                       .slice(0, reservasDisplayCount)
                       .map((reserva) => (
@@ -1033,15 +1067,16 @@ const Reservas = () => {
                     </div>
                     <div className={styles.infoRow}>
                       <span className={styles.label}>👥 Hóspedes:</span>
-                      <span className={styles.value}>
-                        {reserva.numeroHospedes} pessoa{reserva.numeroHospedes > 1 ? 's' : ''}
+                      <span className={styles.value} style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                        {/* {reserva.numeroHospedes} pessoa{reserva.numeroHospedes > 1 ? 's' : ''} */}
                         {reserva.clienteIds && reserva.clienteIds.length > 0 && (
-                          <div style={{ marginTop: '4px', fontSize: '12px', color: '#64748b' }}>
-                            {reserva.clienteIds.map(clienteId => {
-                              const cliente = clientes.find(c => c.id === clienteId);
-                              return cliente ? cliente.nome : `ID: ${clienteId}`;
-                            }).join(', ')}
-                          </div>
+                          <button
+                            className={styles.btnViewHospedes}
+                            onClick={() => setHospedesModal({ isOpen: true, reserva })}
+                            title="Ver detalhes dos hóspedes"
+                          >
+                            Ver Hóspedes
+                          </button>
                         )}
                       </span>
                     </div>
@@ -1085,9 +1120,11 @@ const Reservas = () => {
                   {/* Botão Ver Mais para reservas */}
                   {reservas
                     .filter(reserva => {
+                      const idMatch = !filterReservaId || reserva.id.toString().includes(filterReservaId);
                       const cpfMatch = !filterCpf || reserva.cliente?.cpf.includes(filterCpf);
                       const quartoMatch = !filterQuartoNumero || reserva.quarto?.numero.toString().includes(filterQuartoNumero);
-                      return cpfMatch && quartoMatch;
+                      const statusMatch = !filterStatus || reserva.status === filterStatus;
+                      return idMatch && cpfMatch && quartoMatch && statusMatch;
                     }).length > reservasDisplayCount && (
                     <div style={{ textAlign: 'center', marginTop: '20px', padding: '20px' }}>
                       <button
@@ -1105,6 +1142,70 @@ const Reservas = () => {
         </div>
       </div>
       </div>
+
+      {/* Modal de Hóspedes */}
+      {hospedesModal.isOpen && hospedesModal.reserva && (
+        <div className={styles.modalOverlay} onClick={() => setHospedesModal({ isOpen: false, reserva: null })}>
+          <div className={styles.hospedesModal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.hospedesModalHeader}>
+              <h3>👥 Hóspedes da Reserva #{hospedesModal.reserva.id}</h3>
+              <button 
+                className={styles.hospedesModalClose}
+                onClick={() => setHospedesModal({ isOpen: false, reserva: null })}
+              >
+                ✕
+              </button>
+            </div>
+            <div className={styles.hospedesModalBody}>
+              {hospedesModal.reserva.clienteIds && hospedesModal.reserva.clienteIds.length > 0 ? (
+                hospedesModal.reserva.clienteIds.map((clienteId, index) => {
+                  const cliente = clientes.find(c => c.id === clienteId);
+                  if (!cliente) return (
+                    <div key={index} className={styles.hospedeCard}>
+                      <div className={styles.hospedeCardHeader}>
+                        <span className={styles.hospedeNumber}>Hóspede {index + 1}</span>
+                      </div>
+                      <div className={styles.hospedeCardBody}>
+                        <p className={styles.hospedeError}>Cliente não encontrado (ID: {clienteId})</p>
+                      </div>
+                    </div>
+                  );
+                  
+                  return (
+                    <div key={clienteId} className={styles.hospedeCard}>
+                      <div className={styles.hospedeCardHeader}>
+                        <span className={styles.hospedeNumber}>{cliente.nome}</span>
+                      </div>
+                      <div className={styles.hospedeCardBody}>
+                        <div className={styles.hospedeInfo}>
+                          <span className={styles.hospedeLabel}>🆔 CPF:</span>
+                          <span className={styles.hospedeValue}>{cliente.cpf}</span>
+                        </div>
+                        <div className={styles.hospedeInfo}>
+                          <span className={styles.hospedeLabel}>📧 Email:</span>
+                          <span className={styles.hospedeValue}>{cliente.email}</span>
+                        </div>
+                        <div className={styles.hospedeInfo}>
+                          <span className={styles.hospedeLabel}>📱 Telefone:</span>
+                          <span className={styles.hospedeValue}>{cliente.telefone}</span>
+                        </div>
+                        {cliente.endereco && (
+                          <div className={styles.hospedeInfo}>
+                            <span className={styles.hospedeLabel}>📍 Endereço:</span>
+                            <span className={styles.hospedeValue}>{cliente.endereco}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className={styles.noHospedes}>Nenhum hóspede cadastrado para esta reserva.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <AlertModal
         isOpen={alertModal.isOpen}
