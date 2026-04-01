@@ -177,6 +177,6 @@ Projeto Final Web/
 
 ## 👥 Desenvolvedores
 
-**Pedro Bittencourt • Lucas • Leo**  
+**Pedro Bittencourt • Lucas Nicoletti • Leonardo Cruz**  
 UTFPR - Universidade Tecnológica Federal do Paraná  
 © 2025
